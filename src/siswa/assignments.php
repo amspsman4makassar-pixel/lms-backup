@@ -432,7 +432,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
 
                 <!-- Already submitted -->
-                <?php if ($existing_submission && !$edit_mode): ?>
+                <?php if ($existing_submission): ?>
                 <div class="done-card">
                     <div class="done-icon">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -466,18 +466,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Lihat File yang Dikumpulkan
                             </a>
                         <?php endif; ?>
-                        <?php if ($existing_submission['grade'] === null): ?>
+                        <?php if ($existing_submission['grade'] === null && !$edit_mode): ?>
                         <a href="?assignment_id=<?php echo $assignment_id; ?>&edit=1" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;margin-left:8px;padding:8px 16px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             Edit / Kirim Ulang
                         </a>
+                        <?php elseif ($edit_mode): ?>
+                        <a href="?assignment_id=<?php echo $assignment_id; ?>" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;margin-left:8px;padding:8px 16px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Batal Edit
+                        </a>
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
-                <?php elseif (!$existing_submission || $edit_mode): ?>
+                <?php if (!$existing_submission || $edit_mode): ?>
                 <!-- Submission Form (new OR edit mode) -->
-                <div class="assign-form-card">
+                <div class="assign-form-card" style="<?php echo $edit_mode ? 'margin-top: 24px;' : ''; ?>">
                     <?php if ($edit_mode): ?>
                     <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
