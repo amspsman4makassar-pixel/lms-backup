@@ -51,6 +51,7 @@ $news_items = $pdo->query("SELECT * FROM news ORDER BY created_at DESC")->fetchA
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kelola Berita - OSIS</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
@@ -62,17 +63,18 @@ $news_items = $pdo->query("SELECT * FROM news ORDER BY created_at DESC")->fetchA
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <!-- Unified Hero Header -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;">Kelola Berita Sekolah</h1>
-                <p style="color: rgba(255,255,255,0.9);">OSIS SMAN 4 - Suara Siswa.</p>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kelola Berita Sekolah</h1>
+                <p class="page-subtitle">OSIS SMAN 4 - Suara Siswa.</p>
             </div>
         </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; margin-top: -30px; position: relative; z-index: 10;">
+        <div class="page-content">
+            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; align-items: start;">
             <!-- Form Card -->
-            <div class="card">
+            <div class="page-section">
                 <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Tulis Berita Baru</h3>
                 <?php if (isset($success))
     echo "<div class='badge badge-success' style='display:block; padding:10px; margin-bottom:15px; text-align:center;'>$success</div>"; ?>
@@ -98,10 +100,10 @@ $news_items = $pdo->query("SELECT * FROM news ORDER BY created_at DESC")->fetchA
             </div>
             
             <!-- List Card -->
-            <div class="card">
+            <div class="page-section">
                 <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg> Daftar Berita</h3>
-                <div class="table-container">
-                    <table>
+                <div class="page-table-wrap">
+                    <table class="page-table">
                         <thead>
                             <tr>
                                 <th>Gambar</th>
@@ -135,10 +137,12 @@ endforeach; ?>
                     </table>
                 </div>
             </div>
+            </div>
         </div>
     </main>
 </div>
 
 </body>
 </html>
+
 

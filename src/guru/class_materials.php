@@ -152,6 +152,7 @@ $materials = $stmt->fetchAll();
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Materi <?php echo htmlspecialchars($class['name']); ?></title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
@@ -162,28 +163,38 @@ $materials = $stmt->fetchAll();
         }
     </script>
 </head>
-<body>
+<body class="unified-layout">
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <a href="manage_materials.php" style="display: inline-block; margin-bottom: 20px; color: #64748b; text-decoration: none;">â† Kembali ke Daftar Kelas</a>
-
-        <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: start;">
-            <div>
-                <h1><?php echo htmlspecialchars($class['name']); ?></h1>
-                <p style="color: #64748b;"><?php echo htmlspecialchars($class['subject']); ?></p>
+        <!-- Dashboard Hero -->
+        <div class="dashboard-hero">
+            <div style="position: relative; z-index: 2;">
+                <div style="margin-bottom: 1rem;">
+                    <a href="manage_materials.php" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 20px; width: fit-content; backdrop-filter: blur(4px);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                        Kembali ke Daftar Kelas
+                    </a>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h1 style="color: white; margin-bottom: 0.5rem;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:8px;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg> Materi <?php echo htmlspecialchars($class['name']); ?></h1>
+                        <p style="color: rgba(255,255,255,0.8);"><?php echo htmlspecialchars($class['subject']); ?></p>
+                    </div>
+                    <?php if (!isset($class['is_legacy'])): ?>
+                    <button onclick="document.getElementById('addMaterialModal').style.display='block'" class="btn" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px); display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Tambah Materi
+                    </button>
+                    <?php endif; ?>
+                </div>
             </div>
-            
-            <?php if (!isset($class['is_legacy'])): ?>
-            <button onclick="document.getElementById('addMaterialModal').style.display='block'" class="btn">
-                + Tambah Materi
-            </button>
-            <?php
-endif; ?>
-        </header>
+            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
 
+        <div class="content-overlap">
         <?php
 if (isset($_SESSION['flash'])) {
     $flash = $_SESSION['flash'];
@@ -198,7 +209,7 @@ if (isset($_SESSION['flash'])) {
 }
 ?>
 
-        <div class="card">
+        <div class="page-section">
             <?php if (empty($materials)): ?>
                 <div style="text-align: center; padding: 3rem; color: #94a3b8;">
                     <p>Belum ada materi di kelas ini.</p>
@@ -231,7 +242,7 @@ else: ?>
                                     
                                     <?php if ($m['type'] == 'link'): ?>
                                         <a href="<?php echo htmlspecialchars($m['file_path']); ?>" target="_blank" class="btn btn-secondary" style="padding: 5px 15px; font-size: 0.85rem;">
-                                            Buka Link â†—
+                                            Buka Link Ã¢â€ &mdash;
                                         </a>
                                     <?php
         else: ?>
@@ -252,6 +263,7 @@ else: ?>
                 </div>
             <?php
 endif; ?>
+        </div>
         </div>
 
         <!-- Add Material Modal -->
@@ -309,4 +321,5 @@ endif; ?>
 
 </body>
 </html>
+
 

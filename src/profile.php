@@ -139,6 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Profil Saya</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
@@ -225,17 +226,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include 'templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <!-- Dashboard Hero (Role-aware) -->
-        <div class="dashboard-hero" data-lms-role="<?php echo $role; ?>">
-            <div class="hero-content">
-                <div class="hero-text-area">
-                    <h1>Profil Saya</h1>
-                    <p>Kelola informasi profil dan pengaturan keamanan akun Anda secara mandiri.</p>
-                </div>
+        <!-- Page Toolbar (Role-aware) -->
+        <div class="page-toolbar" data-lms-role="<?php echo $role; ?>">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Profil Saya</h1>
+                <p class="page-subtitle">Kelola informasi profil dan pengaturan keamanan akun Anda secara mandiri.</p>
             </div>
         </div>
 
-        <div class="content-overlap">
+        <div class="page-content">
             <div class="container-fluid">
 
         <div>
@@ -247,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php
 endif; ?>
 
-            <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <div class="page-section" style="max-width: 800px; margin: 0 auto;">
                 <?php if ($success)
     echo "<div class='badge badge-success' style='display:block; padding: 1rem; margin-bottom: 1.5rem; text-align:center;'>$success</div>"; ?>
                 <?php if ($error)
@@ -393,4 +392,5 @@ function togglePasswordInput(inputId, btn) {
 
 </body>
 </html>
+
 

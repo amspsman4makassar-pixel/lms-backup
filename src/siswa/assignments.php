@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/siswa/assignments.php
 session_start();
 require_once '../../config/database.php';
@@ -8,744 +8,562 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'siswa') {
     exit;
 }
 
-// Get Student's Class
-$stmt = $pdo->prepare("SELECT class_id FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user_data = $stmt->fetch();
-$class_id = $user_data['class_id'];
-$subject_id = null;
-$current_subject = null;
+$student_id    = $_SESSION['user_id'];
+$assignment_id = intval($_GET['assignment_id'] ?? 0);
 
-// Handle Assignment Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_assignment'])) {
-    $assignment_id = $_POST['assignment_id'];
-    $student_id = $_SESSION['user_id'];
-
-    $target_dir = "../../public/uploads/submissions/";
-    if (!file_exists($target_dir))
-        mkdir($target_dir, 0777, true);
-
-    // Check for late submission
-    $stmt = $pdo->prepare("SELECT deadline FROM assignments WHERE id = ?");
-    $stmt->execute([$assignment_id]);
-    $assign = $stmt->fetch();
-    $is_late_submit = ($assign && $assign['deadline'] && time() > strtotime($assign['deadline']));
-    $status = $is_late_submit ? 'terlambat' : 'menunggu_nilai';
-
-    // Insert Submission Record FIRST
-    $stmt = $pdo->prepare("INSERT INTO submissions (assignment_id, student_id, status, submitted_at) VALUES (?, ?, ?, NOW())");
-    if ($stmt->execute([$assignment_id, $student_id, $status])) {
-        $submission_id = $pdo->lastInsertId();
-
-        // Handle Multiple Files
-        if (isset($_FILES['files'])) {
-            $files = $_FILES['files'];
-            $file_count = count($files['name']);
-            $uploaded_count = 0;
-
-            for ($i = 0; $i < $file_count; $i++) {
-                if ($files['error'][$i] == 0) {
-                    $file_name = time() . "_" . $student_id . "_" . basename($files["name"][$i]);
-                    $target_file = $target_dir . $file_name;
-
-                    if (move_uploaded_file($files["tmp_name"][$i], $target_file)) {
-                        $file_path = "public/uploads/submissions/" . $file_name;
-                        $pdo->prepare("INSERT INTO submission_attachments (submission_id, file_path) VALUES (?, ?)")->execute([$submission_id, $file_path]);
-                        $uploaded_count++;
-                    }
-                }
-            }
-        }
-
-        $msg = "Tugas berhasil dikumpulkan!";
-        if ($is_late_submit) {
-            $msg .= " (Status: Terlambat)";
-        }
-        $_SESSION['flash'] = ['type' => 'success', 'message' => $msg];
-    }
-    else {
-        $_SESSION['flash'] = ['type' => 'error', 'message' => "Gagal menyimpan data ke database."];
-    }
-
-    // REDIRECT (PRG Pattern)
-    header("Location: " . $_SERVER['REQUEST_URI']);
+if (!$assignment_id) {
+    header("Location: kelas_siswa.php");
     exit;
 }
 
-// Handle Attendance Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_attendance'])) {
-    $assignment_id = $_POST['assignment_id'];
-    $student_id = $_SESSION['user_id'];
-    $selected_status = $_POST['status']; // hadir, sakit, izin
+// Fetch assignment detail
+$stmt = $pdo->prepare("
+    SELECT a.*,
+           u.full_name as teacher_name,
+           COALESCE(s_a.name, s_u.name, 'Umum') as subject_name,
+           c.name as class_name,
+           (SELECT GROUP_CONCAT(file_path SEPARATOR ',') FROM assignment_attachments WHERE assignment_id = a.id) as attachments
+    FROM assignments a
+    JOIN users u ON a.teacher_id = u.id
+    LEFT JOIN subjects s_u ON u.subject_id = s_u.id
+    LEFT JOIN subjects s_a ON a.subject_id = s_a.id
+    JOIN assignment_classes ac ON a.id = ac.assignment_id
+    JOIN classes c ON ac.class_id = c.id
+    JOIN users stu ON stu.class_id = c.id
+    WHERE a.id = ? AND stu.id = ? AND a.status = 'active'
+    LIMIT 1
+");
+$stmt->execute([$assignment_id, $student_id]);
+$assignment = $stmt->fetch();
 
-    // Verify assignment still exists
-    $verify = $pdo->prepare("SELECT id FROM assignments WHERE id = ?");
-    $verify->execute([$assignment_id]);
-    if (!$verify->fetch()) {
-        $_SESSION['flash'] = ['type' => 'error', 'message' => "Absensi ini sudah tidak tersedia (mungkin sudah dihapus guru)."];
-    }
-    // Validate status
-    elseif (!in_array($selected_status, ['hadir', 'sakit', 'izin'])) {
-        $_SESSION['flash'] = ['type' => 'error', 'message' => "Status absensi tidak valid."];
-    }
-    else {
-        // Check if already submitted
-        $check = $pdo->prepare("SELECT id FROM submissions WHERE assignment_id = ? AND student_id = ?");
-        $check->execute([$assignment_id, $student_id]);
-
-        if (!$check->fetch()) {
-            // Server-side guard: block submission if time window has closed
-            $stmt_time = $pdo->prepare("SELECT deadline, jam_start FROM assignments WHERE id = ?");
-            $stmt_time->execute([$assignment_id]);
-            $assign_time = $stmt_time->fetch();
-            if ($assign_time && !empty($assign_time['deadline']) && time() > strtotime($assign_time['deadline'])) {
-                $_SESSION['flash'] = ['type' => 'error', 'message' => 'Waktu absensi sudah berakhir. Silakan hubungi guru untuk perubahan status.'];
-                header("Location: " . $_SERVER['REQUEST_URI']);
-                exit;
-            }
-
-            // Status is exactly what student selected (hadir / sakit / izin)
-            $final_status = $selected_status;
-
-            // Insert submission
-            // Note: file_path is NULLABLE now
-            $stmt = $pdo->prepare("INSERT INTO submissions (assignment_id, student_id, status, submitted_at) VALUES (?, ?, ?, NOW())");
-            if ($stmt->execute([$assignment_id, $student_id, $final_status])) {
-                $status_msg = ucfirst($final_status);
-                $_SESSION['flash'] = ['type' => 'success', 'message' => "Berhasil absen! Status: <strong>$status_msg</strong>"];
-            }
-            else {
-                $_SESSION['flash'] = ['type' => 'error', 'message' => "Gagal mencatat kehadiran."];
-            }
-        }
-        else {
-            // Cek apakah submission lama statusnya 'terlambat' dan sekarang masih dalam jam absensi
-            $old_sub = $pdo->prepare("SELECT id, status FROM submissions WHERE assignment_id = ? AND student_id = ?");
-            $old_sub->execute([$assignment_id, $student_id]);
-            $existing = $old_sub->fetch();
-
-            $stmt_time = $pdo->prepare("SELECT deadline FROM assignments WHERE id = ?");
-            $stmt_time->execute([$assignment_id]);
-            $assign_time = $stmt_time->fetch();
-            $still_open  = $assign_time && !empty($assign_time['deadline']) && time() <= strtotime($assign_time['deadline']);
-
-            if ($existing && $existing['status'] === 'terlambat' && $still_open) {
-                // Update status dari terlambat ke pilihan siswa
-                $upd = $pdo->prepare("UPDATE submissions SET status = ?, submitted_at = NOW() WHERE id = ?");
-                if ($upd->execute([$selected_status, $existing['id']])) {
-                    $status_msg = ucfirst($selected_status);
-                    $_SESSION['flash'] = ['type' => 'success', 'message' => "Status absensi diperbarui: <strong>$status_msg</strong>"];
-                }
-                else {
-                    $_SESSION['flash'] = ['type' => 'error', 'message' => "Gagal memperbarui status."];
-                }
-            }
-            else {
-                $_SESSION['flash'] = ['type' => 'warning', 'message' => "Anda sudah melakukan absensi sebelumnya."];
-            }
-        }
-    }
-
-    // REDIRECT (PRG Pattern)
-    header("Location: " . $_SERVER['REQUEST_URI']);
+if (!$assignment) {
+    echo "<p style='padding:2rem;color:red;'>Tugas tidak ditemukan atau Anda tidak memiliki akses.</p>";
     exit;
 }
 
-// Fetch Assignments Logic (MULTI-CLASS + STATUS FILTER)
-if ($class_id) {
-    // Only fetch ACTIVE assignments
-    // Fetch jam_start, jam_end, assignment_type
-    $subject_id = $_GET['subject_id'] ?? null;
-    $is_general = isset($_GET['general']);
-    $current_subject = null;
+// Check existing submission
+$sub_stmt = $pdo->prepare("SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ?");
+$sub_stmt->execute([$assignment_id, $student_id]);
+$existing_submission = $sub_stmt->fetch();
 
-    if ($subject_id || $is_general) {
-        $condition = $is_general ? "COALESCE(a.subject_id, u.subject_id) IS NULL" : "COALESCE(a.subject_id, u.subject_id) = ?";
+$deadline_ts = strtotime($assignment['deadline']);
+$is_overdue  = $deadline_ts < time();
+$class_id    = null;
 
-        // Filter Type Logic
-        $filter_type = $_GET['type'] ?? 'all';
-        $type_condition = "";
-        $params = [$class_id];
+// Get class_id for back link
+$cl_stmt = $pdo->prepare("SELECT class_id FROM users WHERE id = ?");
+$cl_stmt->execute([$student_id]);
+$class_id = $cl_stmt->fetchColumn();
 
-        if ($filter_type === 'tugas') {
-            $type_condition = "AND a.assignment_type = 'tugas'";
+// Handle submission
+$success_msg = '';
+$error_msg   = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existing_submission) {
+    if (($assignment['assignment_type'] ?? 'tugas') === 'absensi') {
+        $status = $_POST['status'] ?? 'hadir';
+        if (!in_array($status, ['hadir', 'sakit', 'izin'])) {
+            $status = 'hadir';
         }
-        elseif ($filter_type === 'absensi') {
-            $type_condition = "AND a.assignment_type = 'absensi'";
+        
+        $current_time = date('H:i');
+        if ($current_time < '07:00' || $current_time > '16:00') {
+            $error_msg = "Absensi hanya dapat dilakukan antara pukul 07:00 - 16:00 WITA.";
+        } else {
+            $ins = $pdo->prepare("
+                INSERT INTO submissions (assignment_id, student_id, status, submitted_at)
+                VALUES (?, ?, ?, NOW())
+            ");
+            $ins->execute([$assignment_id, $student_id, $status]);
+            $success_msg = "Kehadiran berhasil dicatat!";
+            
+            $sub_stmt->execute([$assignment_id, $student_id]);
+            $existing_submission = $sub_stmt->fetch();
         }
+    } else {
+        $file_path    = null;
 
-        // Fetch Assignments for specific Subject (or General)
-        $sql = "SELECT DISTINCT a.*, u.full_name as teacher_name, 
-                COALESCE(s_assign.name, s_user.name) as subject_name,
-                (SELECT GROUP_CONCAT(file_path SEPARATOR ',') FROM assignment_attachments WHERE assignment_id = a.id) as attachments
-                FROM assignments a 
-                JOIN assignment_classes ac ON a.id = ac.assignment_id 
-                JOIN users u ON a.teacher_id = u.id 
-                LEFT JOIN subjects s_user ON u.subject_id = s_user.id
-                LEFT JOIN subjects s_assign ON a.subject_id = s_assign.id
-                WHERE ac.class_id = ? 
-                AND a.status = 'active'
-                AND $condition
-                $type_condition
-                ORDER BY a.deadline ASC";
+        // Handle file upload
+        if (!empty($_FILES['submission_file']['name'])) {
+            $upload_dir = '../../public/uploads/submissions/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
-        $stmt = $pdo->prepare($sql);
-        if ($is_general) {
-        // params already has class_id
-        // no subject_id to add
-        }
-        else {
-            $params[] = $subject_id;
-        }
+            $orig_name  = basename($_FILES['submission_file']['name']);
+            $ext        = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
+            $allowed    = ['pdf','doc','docx','ppt','pptx','xls','xlsx','jpg','jpeg','png','zip','rar'];
 
-        $stmt->execute($params);
-        $raw_assignments = $stmt->fetchAll();
-
-        // Deduplicate Absensi by meeting_number (Keep Latest)
-        $assignments = [];
-        $seen_meetings = [];
-
-        // Sort by ID DESC first to process latest first
-        usort($raw_assignments, function ($a, $b) {
-            return $b['id'] - $a['id'];
-        });
-
-        foreach ($raw_assignments as $asm) {
-            if ($asm['assignment_type'] === 'absensi') {
-                $m_num = $asm['meeting_number'];
-                if (in_array($m_num, $seen_meetings)) {
-                    continue; // Skip older duplicates
+            if (!in_array($ext, $allowed)) {
+                $error_msg = "Format file tidak didukung. Gunakan: " . implode(', ', $allowed);
+            } elseif ($_FILES['submission_file']['size'] > 20 * 1024 * 1024) {
+                $error_msg = "Ukuran file maksimal 20MB.";
+            } else {
+                $new_name  = 'sub_' . $student_id . '_' . $assignment_id . '_' . time() . '.' . $ext;
+                $dest      = $upload_dir . $new_name;
+                if (move_uploaded_file($_FILES['submission_file']['tmp_name'], $dest)) {
+                    $file_path = 'public/uploads/submissions/' . $new_name;
+                } else {
+                    $error_msg = "Gagal mengupload file.";
                 }
-                $seen_meetings[] = $m_num;
             }
-            $assignments[] = $asm;
         }
 
-        // Restore chronological order (Deadline ASC)
-        usort($assignments, function ($a, $b) {
-            return strtotime($a['deadline']) - strtotime($b['deadline']);
-        });
-
-        if ($subject_id && !$current_subject) {
-            // Get Subject Name fallback
-            $stmt_sub = $pdo->prepare("SELECT name FROM subjects WHERE id = ?");
-            $stmt_sub->execute([$subject_id]);
-            $current_subject = $stmt_sub->fetchColumn();
+        if (!$error_msg) {
+            if (!$file_path) {
+                $error_msg = "Harap upload file tugas.";
+            } else {
+                $sub_status = $is_overdue ? 'terlambat' : 'menunggu_nilai';
+                $ins = $pdo->prepare("
+                    INSERT INTO submissions (assignment_id, student_id, file_path, status, submitted_at)
+                    VALUES (?, ?, ?, ?, NOW())
+                ");
+                $ins->execute([$assignment_id, $student_id, $file_path, $sub_status]);
+                $success_msg = "Tugas berhasil dikumpulkan!" . ($is_overdue ? " (Terlambat)" : "");
+                // Refresh submission
+                $sub_stmt->execute([$assignment_id, $student_id]);
+                $existing_submission = $sub_stmt->fetch();
+            }
         }
-
     }
-    else {
-        // Fetch Subjects that have assignments OR meet links for this class
-        $sql = "SELECT id, name, SUM(a_count) as assignment_count, SUM(m_count) as meet_count
-                FROM (
-                    SELECT 
-                        COALESCE(a.subject_id, u.subject_id) as id, 
-                        COALESCE(s_assign.name, s_user.name) as name, 
-                        1 as a_count,
-                        0 as m_count
-                    FROM assignments a
-                    JOIN assignment_classes ac ON a.id = ac.assignment_id
-                    JOIN users u ON a.teacher_id = u.id
-                    LEFT JOIN subjects s_user ON u.subject_id = s_user.id
-                    LEFT JOIN subjects s_assign ON a.subject_id = s_assign.id
-                    WHERE ac.class_id = ? AND a.status = 'active'
-                    
-                    UNION ALL
-                    
-                    SELECT 
-                        COALESCE(m.subject_id, u.subject_id) as id, 
-                        COALESCE(s_meet.name, s_user.name) as name, 
-                        0 as a_count,
-                        1 as m_count
-                    FROM meet_links m
-                    JOIN users u ON m.teacher_id = u.id
-                    LEFT JOIN subjects s_user ON u.subject_id = s_user.id
-                    LEFT JOIN subjects s_meet ON m.subject_id = s_meet.id
-                    WHERE m.class_id = ?
-                ) AS combined
-                GROUP BY id, name
-                ORDER BY name ASC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$class_id, $class_id]);
-        $subjects = $stmt->fetchAll();
-        $assignments = [];
-    }
-
-    // Fetch Google Meet links (selalu diambil untuk ditampilkan di page utama)
-    if ($subject_id) {
-        $stmt = $pdo->prepare("SELECT m.*, u.full_name as teacher_name, NULL as subject_name FROM meet_links m JOIN users u ON m.teacher_id = u.id WHERE m.class_id = ? AND m.subject_id = ? ORDER BY m.created_at DESC");
-        $stmt->execute([$class_id, $subject_id]);
-    }
-    else {
-        $stmt = $pdo->prepare("SELECT m.*, u.full_name as teacher_name, COALESCE(s.name, 'Umum') as subject_name FROM meet_links m JOIN users u ON m.teacher_id = u.id LEFT JOIN subjects s ON m.subject_id = s.id WHERE m.class_id = ? ORDER BY m.created_at DESC");
-        $stmt->execute([$class_id]);
-    }
-    $meet_links = $stmt->fetchAll();
-}
-else {
-    $assignments = [];
-    $meet_links = [];
-    $warning = "Anda belum dimasukkan ke dalam kelas. Hubungi Admin.";
 }
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Daftar Tugas & Ujian</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo htmlspecialchars($assignment['title']); ?> - SIAKAD</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .status-option {
+        .assign-wrap {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+        .assign-header {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+        .assign-subject-badge {
+            display: inline-block;
+            background: #ede9fe;
+            color: #5b21b6;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .assign-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            line-height: 1.35;
+        }
+        .assign-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+        .assign-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .overdue-banner {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #92400e;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .assign-desc {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #334155;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+        .assign-form-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+        }
+        .assign-form-card h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .form-group textarea {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .file-upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .file-upload-area:hover {
+            border-color: var(--primary);
+            background: #f0f9ff;
+        }
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+        .file-upload-area label {
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: 0;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+        .submit-btn:hover { opacity: 0.9; }
+        .submit-btn.late { background: #f59e0b; }
+        .done-card {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            text-align: center;
+        }
+        .done-card .done-icon { margin-bottom: 12px; }
+        .done-card h3 { color: #166534; font-size: 1.1rem; margin-bottom: 8px; }
+        .done-card p { color: #15803d; font-size: 0.88rem; }
+        .alert-success {
+            background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46;
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+            font-size: 0.88rem; font-weight: 600;
+        }
+        .alert-error {
+            background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b;
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+            font-size: 0.88rem; font-weight: 600;
+        }
+        .back-link {
             display: inline-flex;
             align-items: center;
-            margin-right: 15px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
+            gap: 6px;
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 16px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
         }
-        .status-option input {
-            margin-right: 6px;
-            width: 16px; height: 16px;
-            cursor: pointer;
-        }
+        .back-link:hover { background: #e0f2fe; color: #0284c7; }
     </style>
 </head>
-<body class="admin-full-layout">
-
+<body>
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
-    
     <main class="main-content">
-        <!-- Dashboard Hero -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                    Daftar Tugas Anda
-                </h1>
-                <p style="color: rgba(255,255,255,0.8);">Kerjakan tugas tepat waktu untuk mendapatkan nilai maksimal.</p>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kerjakan Tugas</h1>
+                <p class="page-subtitle"><?php echo htmlspecialchars($assignment['subject_name']); ?> &middot; <?php echo htmlspecialchars($assignment['class_name']); ?></p>
             </div>
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
         </div>
+        <div class="page-content">
+            <div class="assign-wrap">
 
-        <div class="content-overlap">
-
-        <?php
-if (isset($_SESSION['flash'])) {
-    $flash = $_SESSION['flash'];
-    $bg = '';
-    $color = '';
-    $icon = '';
-
-    if ($flash['type'] === 'success') {
-        $bg = '#dcfce7';
-        $color = '#166534';
-    }
-    elseif ($flash['type'] === 'error') {
-        $bg = '#fee2e2';
-        $color = '#991b1b';
-    }
-    elseif ($flash['type'] === 'warning') {
-        $bg = '#fffbeb';
-        $color = '#b45309';
-        $icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ';
-    }
-
-    echo "<div style='background:$bg; color:$color; padding:10px; border-radius:8px; margin-bottom:15px; font-weight: 500;'>$icon" . $flash['message'] . "</div>";
-    unset($_SESSION['flash']);
-}
-?>
-
-        <?php if ($subject_id || isset($_GET['general'])): ?>
-            <div style="margin-bottom: 20px;">
-                <a href="assignments.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
-                    &larr; Kembali ke Mapel
+                <!-- Back -->
+                <a href="kelas_detail_siswa.php?class_id=<?php echo $class_id; ?>&tab=tugas" class="back-link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    Kembali ke Daftar Tugas
                 </a>
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
-                    <h2 style="font-size: 1.5rem; color: #1e293b; margin: 0;"><?php echo htmlspecialchars($current_subject); ?></h2>
-                    
-                    <div class="filter-group" style="display: flex; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
-                        <?php
-    $base_link = $is_general ? "?general=1" : "?subject_id=$subject_id";
-    $curr_type = $_GET['type'] ?? 'all';
-?>
-                        <a href="<?php echo $base_link; ?>&type=all" style="padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; color: <?php echo $curr_type == 'all' ? '#fff' : '#64748b'; ?>; background: <?php echo $curr_type == 'all' ? '#3b82f6' : 'transparent'; ?>;">Semua</a>
-                        <a href="<?php echo $base_link; ?>&type=tugas" style="padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; color: <?php echo $curr_type == 'tugas' ? '#fff' : '#64748b'; ?>; background: <?php echo $curr_type == 'tugas' ? '#3b82f6' : 'transparent'; ?>;">Tugas</a>
-                        <a href="<?php echo $base_link; ?>&type=absensi" style="padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; color: <?php echo $curr_type == 'absensi' ? '#fff' : '#64748b'; ?>; background: <?php echo $curr_type == 'absensi' ? '#3b82f6' : 'transparent'; ?>;">Absensi</a>
+
+                <!-- Header -->
+                <div class="assign-header">
+                    <div class="assign-subject-badge"><?php echo htmlspecialchars($assignment['subject_name']); ?></div>
+                    <div class="assign-title"><?php echo htmlspecialchars($assignment['title']); ?></div>
+                    <div class="assign-meta">
+                        <span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <?php echo htmlspecialchars($assignment['teacher_name']); ?>
+                        </span>
+                        <span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            Deadline: <?php echo date('d M Y, H:i', $deadline_ts); ?>
+                        </span>
+                        <span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            <?php echo ucfirst($assignment['assignment_type'] ?? 'Tugas'); ?>
+                        </span>
                     </div>
+                    <?php if ($is_overdue): ?>
+                    <div class="overdue-banner">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Deadline sudah lewat - pengumpulan masih diperbolehkan namun akan ditandai <strong>Terlambat</strong>
+                    </div>
+                    <?php endif; ?>
                 </div>
-            </div>
-        <?php
-endif; ?>
 
-        <?php if (!$subject_id && !isset($_GET['general'])): ?>
-            <!-- SUBJECTS GRID -->
-             <?php if (empty($subjects)): ?>
-                <div class="card" style="text-align: center; color: var(--text-muted); padding: 3rem;">
-                    <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Tidak ada tugas aktif</h3>
-                    <p>Anda telah menyelesaikan semua tugas atau belum ada tugas baru.</p>
-                </div>
-            <?php
-    else: ?>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
-                    <?php foreach ($subjects as $sub): ?>
-                        <?php
-            $link = $sub['id'] ? "?subject_id=" . $sub['id'] : "?general=1";
-            $name = $sub['name'] ?? "Umum / Lainnya";
-?>
-                        <a href="<?php echo $link; ?>" class="card" style="text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2rem;">
-                            <div style="width: 60px; height: 60px; background: #fee2e2; color: #991b1b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                            </div>
-                            <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b;"><?php echo htmlspecialchars($name); ?></h3>
-                            
-                            <div style="display:flex; justify-content:center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                                <?php if (isset($sub['assignment_count']) && $sub['assignment_count'] > 0): ?>
-                                <span style="background: #f1f5f9; color: #64748b; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem;">
-                                    <?php echo $sub['assignment_count']; ?> Tugas Aktif
-                                </span>
-                                <?php
-            endif; ?>
-                                
-                                <?php if (isset($sub['meet_count']) && $sub['meet_count'] > 0): ?>
-                                <span style="background: #d1fae5; color: #059669; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem;">
-                                    <?php echo $sub['meet_count']; ?> Google Meet
-                                </span>
-                                <?php
-            endif; ?>
-                                
-                                <?php if (empty($sub['assignment_count']) && empty($sub['meet_count'])): ?>
-                                <span style="background: #f1f5f9; color: #64748b; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem;">
-                                    Buka Mata Pelajaran
-                                </span>
-                                <?php
-            endif; ?>
-                            </div>
-                        </a>
-                    <?php
-        endforeach; ?>
-                </div>
-            <?php
-    endif; ?>
-        <?php
-else: ?>
+                <!-- Description -->
+                <?php if (!empty($assignment['description'])): ?>
+                <div class="assign-desc"><?php echo htmlspecialchars($assignment['description']); ?></div>
+                <?php endif; ?>
 
-        <div style="display: grid; gap: 20px;">
-            <?php if (empty($assignments) && empty($meet_links) && !isset($warning)): ?>
-                <div class="card" style="text-align: center; color: var(--text-muted); padding: 3rem;">
-                    <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Belum ada aktivitas</h3>
-                    <p>Tidak ada tugas atau jadwal Google Meet aktif untuk mata pelajaran ini.</p>
-                </div>
-            <?php
-    endif; ?>
-
-            <?php foreach ($meet_links as $ml): ?>
-                <?php
-                $now = time();
-                $is_started = true;
-                $is_ended = false;
-                $status_msg = "Pertemuan Google Meet";
-                $btn_text = "Buka Google Meet";
-                $btn_style = "background: #10b981; color: white;";
-                $can_access = true;
-
-                if ($ml['start_time'] && $ml['end_time']) {
-                    $start_ts = strtotime($ml['start_time']);
-                    $end_ts = strtotime($ml['end_time']);
-
-                    if ($now < $start_ts) {
-                        $is_started = false;
-                        $can_access = false;
-                        $status_msg = "Meet Belum Dimulai";
-                        $btn_text = "Belum Dimulai";
-                        $btn_style = "background: #e2e8f0; color: #94a3b8; cursor: not-allowed;";
-                    } elseif ($now > $end_ts) {
-                        $is_ended = true;
-                        $can_access = false;
-                        $status_msg = "Meet Telah Berakhir";
-                        $btn_text = "Telah Berakhir";
-                        $btn_style = "background: #fee2e2; color: #991b1b; cursor: not-allowed;";
+                <!-- Attachment -->
+                <?php 
+                $all_attachments = [];
+                if (!empty($assignment['attachment_path'])) {
+                    $all_attachments[] = $assignment['attachment_path'];
+                }
+                if (!empty($assignment['attachments'])) {
+                    $files = explode(',', $assignment['attachments']);
+                    foreach ($files as $f) {
+                        $f = trim($f);
+                        if (!empty($f) && !in_array($f, $all_attachments)) {
+                            $all_attachments[] = $f;
+                        }
                     }
                 }
                 ?>
-                <div class="card" style="border-left: 5px solid <?php echo $is_ended ? '#ef4444' : (!$is_started ? '#f59e0b' : '#10b981'); ?>; padding: 1.5rem; background: #fff;">
-                     <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px; flex-wrap: wrap;">
-                        <div style="flex: 1;">
-                            <span style="background: <?php echo $is_ended ? '#fee2e2' : (!$is_started ? '#fef3c7' : '#d1fae5'); ?>; color: <?php echo $is_ended ? '#991b1b' : (!$is_started ? '#b45309' : '#059669'); ?>; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">GOOGLE MEET</span>
-                            <h3 style="margin: 5px 0 0; font-size: 1.2rem;"><?php echo htmlspecialchars($status_msg); ?> (<?php echo htmlspecialchars($current_subject ?: 'Umum'); ?>)</h3>
-                            <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <strong><?php echo htmlspecialchars($ml['teacher_name']); ?></strong>
-                            </div>
-                            <div style="font-size: 0.8rem; color: #059669; font-weight: 600; margin-top: 6px;">
-                                <?php if ($ml['start_time'] && $ml['end_time']): ?>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Jadwal: <?php echo date('d F Y, H:i', strtotime($ml['start_time'])); ?> s/d <?php echo date('H:i', strtotime($ml['end_time'])); ?>
-                                <?php else: ?>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Dibuat: <?php echo date('d F Y, H:i', strtotime($ml['created_at'])); ?>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        
-                        <div style="min-width: 250px;">
-                            <a href="<?php echo htmlspecialchars($ml['meet_link']); ?>" <?php echo $can_access ? 'target="_blank"' : 'onclick="event.preventDefault();"'; ?> style="display: block; width: 100%;text-align:center; <?php echo $btn_style; ?> border:none; padding: 12px; font-weight: 600; border-radius: 8px; text-decoration: none; transition: background 0.2s;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> <?php echo $btn_text; ?>
-                            </a>
-                        </div>
-                     </div>
-                </div>
-            <?php endforeach; ?>
-
-            <?php foreach ($assignments as $a): ?>
-                <?php
-        // Check submission
-        $check = $pdo->prepare("
-            SELECT s.*, 
-            (SELECT GROUP_CONCAT(file_path SEPARATOR ',') FROM submission_attachments WHERE submission_id = s.id) as submitted_files 
-            FROM submissions s 
-            WHERE assignment_id = ? AND student_id = ?
-        ");
-        $check->execute([$a['id'], $_SESSION['user_id']]);
-        $submission = $check->fetch();
-        $is_done = $submission ? true : false;
-        $is_late = (!$is_done && strtotime($a['deadline']) < time());
-
-        // Attendance Logic
-        if ($a['assignment_type'] === 'absensi'):
-            // For attendance, check time range
-            $now_str = date('H:i:s');
-            $can_absen = true;
-            $time_msg = "";
-            $is_late_period = false;
-
-            if (isset($a['jam_start']) && $a['jam_start']) {
-                if ($now_str < $a['jam_start']) {
-                    $can_absen = false;
-                    $time_msg = "Absensi belum dibuka (Mulai: " . date('H:i', strtotime($a['jam_start'])) . ")";
-                }
-            }
-
-            // Check Deadline (saved in deadline column)
-            if ($a['deadline']) {
-                $deadline_ts = strtotime($a['deadline']);
-                if (time() > $deadline_ts) {
-                    // Absensi DITUTUP â€” siswa tidak bisa lagi mengisi
-                    $can_absen = false;
-                    $is_late_period = true; // border merah/oranye
-                    $time_msg = "Absensi sudah ditutup sejak " . date('H:i', $deadline_ts) . ". Hubungi guru untuk perubahan status.";
-                }
-                else {
-                    if ($can_absen) // Only say opened if not blocked by start time
-                        $time_msg = "Absensi DIBUKA sampai " . date('H:i', $deadline_ts);
-                }
-            }
-?>
-                    <!-- ATTENDANCE CARD -->
-                    <div class="card" style="border-left: 5px solid <?php echo $is_done ? '#10b981' : ($is_late_period ? '#f59e0b' : '#3b82f6'); ?>; padding: 1.5rem; background: #fff;">
-                         <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px; flex-wrap: wrap;">
-                            <div style="flex: 1;">
-                                <span style="background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">KELAS / ABSENSI</span>
-                                <h3 style="margin: 5px 0 0; font-size: 1.2rem;"><?php echo htmlspecialchars($a['title']); ?></h3>
-                                <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">
-                                    <?php echo htmlspecialchars($a['description']); ?>
-                                </div>
-                                <?php if ($time_msg): ?>
-                                    <div style="font-size: 0.8rem; color: <?php echo $is_late_period ? '#b45309' : ($can_absen ? '#059669' : '#b45309'); ?>; font-weight: 600; margin-top: 6px;">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <?php echo $time_msg; ?>
-                                    </div>
-                                <?php
-            endif; ?>
-                            </div>
-                            
-                            <div style="min-width: 250px;">
-                                <?php if ($is_done): ?>
-                                    <div style="text-align: center; background: #f0fdf4; padding: 10px; border-radius: 8px; border: 1px solid #bbf7d0;">
-                                        <div style="font-size: 1.5rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                                        <div style="font-size: 0.9rem; font-weight: 700; margin-top: 4px; text-transform: uppercase; color: #15803d;">
-                                            <?php echo htmlspecialchars($submission['status']); ?>
-                                        </div>
-                                        <small style="color:#15803d; font-size:0.75rem;">
-                                            Dicatat: <?php echo date('H:i', strtotime($submission['submitted_at'])); ?>
-                                        </small>
-                                    </div>
-                                <?php
-            else: ?>
-                                    <?php if ($can_absen): ?>
-                                        <form method="POST" style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                                            <input type="hidden" name="assignment_id" value="<?php echo $a['id']; ?>">
-                                            <input type="hidden" name="submit_attendance" value="1">
-                                            
-                                            <div style="margin-bottom: 12px;">
-                                                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px;">Pilih Status Kehadiran:</label>
-                                                
-                                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                                    <label class="status-option">
-                                                        <input type="radio" name="status" value="hadir" checked> Hadir
-                                                    </label>
-                                                    
-                                                    <label class="status-option">
-                                                        <input type="radio" name="status" value="sakit"> Sakit
-                                                    </label>
-                                                    
-                                                    <label class="status-option">
-                                                        <input type="radio" name="status" value="izin"> Izin
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <button type="submit" class="btn" style="width: 100%; background: #3b82f6; color: white; border:none; padding: 10px; font-weight: 600; border-radius: 6px;">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Kirim Absensi
-                                            </button>
-                                        </form>
-                                    <?php
-                else: ?>
-                                        <button disabled style="width: 100%; background: #e2e8f0; color: #94a3b8; border:none; padding: 12px; font-weight: 600; cursor: not-allowed; border-radius: 8px;">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                            <?php
-                                            if (isset($a['jam_start']) && $now_str < $a['jam_start']):
-                                                echo 'Belum Dibuka';
-                                            else:
-                                                echo 'Absensi Ditutup';
-                                            endif;
-                                            ?>
-                                        </button>
-                                    <?php
-                endif; ?>
-                                <?php
-            endif; ?>
-                            </div>
-                         </div>
-                    </div>
-
-                <?php
-        else:
-            // REGULAR ASSIGNMENT (Original Layout)
-?>
                 
-                <div class="card" style="border-left: 5px solid <?php echo $is_done ? '#10b981' : ($is_late ? '#ef4444' : '#f59e0b'); ?>; padding: 1.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 0.5rem;">
-                                <?php if ($a['subject_name']): ?>
-                                    <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
-                                        <?php echo htmlspecialchars($a['subject_name']); ?>
-                                    </span>
-                                <?php
-            endif; ?>
-                                <h3 style="font-size: 1.35rem; margin: 0;"><?php echo htmlspecialchars($a['title']); ?></h3>
-                            </div>
-                            
-                            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <strong><?php echo htmlspecialchars($a['teacher_name']); ?></strong> &nbsp;|&nbsp; 
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Deadline: <?php echo date('d F Y, H:i', strtotime($a['deadline'])); ?>
-                            </p>
-                            
-                            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 1rem;">
-                                <p style="color: #334155; line-height: 1.6;"><?php echo nl2br(htmlspecialchars($a['description'])); ?></p>
-                                
-                                <?php if ($a['attachments']):
-                $files = explode(',', $a['attachments']);
-                foreach ($files as $f):
-                    $is_link = (strpos(trim($f), 'http') === 0);
-                    $href    = $is_link ? trim($f) : '../../' . trim($f);
-                    $label   = $is_link ? 'Buka Link Tugas / Google Form' : 'Download Lampiran';
-                    $icon    = $is_link
-                        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
-                        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
-                    $btn_style = $is_link
-                        ? 'background:#3b82f6; color:white; border:none;'
-                        : '';
-?>
-                                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dotted #cbd5e1;">
-                                        <a href="<?php echo htmlspecialchars($href); ?>" target="_blank" class="btn btn-secondary" style="font-size: 0.85rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 5px; <?php echo $btn_style; ?>">
-                                            <?php echo $icon; ?> <?php echo $label; ?>
-                                        </a>
-                                    </div>
-                                <?php
-                endforeach;
-            endif; ?>
-                            </div>
-                        </div>
+                <?php if (!empty($all_attachments)): ?>
+                <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px;">
+                    <?php foreach ($all_attachments as $att): 
+                        $is_link = (strpos($att, 'http') === 0);
+                        $href = $is_link ? $att : '/' . $att;
+                        
+                        // Extract filename from path for better display
+                        $display_name = $is_link ? "Buka Link / Form Lampiran" : "Lihat Lampiran: " . basename($att);
+                        if (!$is_link && strlen($display_name) > 60) {
+                            $display_name = substr($display_name, 0, 57) . '...';
+                        }
+                    ?>
+                    <a href="<?php echo htmlspecialchars($href); ?>" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#f8fafc;color:#0f172a;border:1px solid var(--border);border-radius:10px;font-size:0.9rem;font-weight:600;text-decoration:none;transition:all 0.2s; width: fit-content;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='var(--border)';">
+                        <?php if ($is_link): ?>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#3b82f6;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        <?php else: ?>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#ef4444;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <?php endif; ?>
+                        <?php echo htmlspecialchars($display_name); ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
 
-                        <!-- Status & Grading Column -->
-                        <div style="min-width: 200px; text-align: right;">
-                            <?php if ($is_done): ?>
-                                <?php if ($submission['grade']): ?>
-                                    <div style="text-align: center; background: #f0fdf4; padding: 1rem; border-radius: 12px; border: 1px solid #bbf7d0;">
-                                        <div style="font-size: 2.5rem; font-weight: 800; color: #166534; line-height: 1;">
-                                            <?php echo $submission['grade']; ?>
-                                        </div>
-                                        <div style="font-size: 0.8rem; color: #166534; font-weight: 600;">NILAI ANDA</div>
-                                    </div>
-                                <?php
-                else: ?>
-                                    <div style="text-align: center; background: #f1f5f9; padding: 1rem; border-radius: 12px; color: #64748b;">
-                                        <div style="font-size: 1.5rem;">â³</div>
-                                        <small>Menunggu Penilaian</small>
-                                    </div>
-                                <?php
-                endif; ?>
-                            <?php
-            else: ?>
-                                <?php if ($is_late): ?>
-                                    <span style="background: #fee2e2; color: #991b1b; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">TERLAMBAT</span>
-                                <?php
-                else: ?>
-                                    <span style="background: #fef3c7; color: #b45309; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">BELUM DIKERJAKAN</span>
-                                <?php
-                endif; ?>
-                            <?php
-            endif; ?>
-                        </div>
+                <!-- Alerts -->
+                <?php if ($success_msg): ?>
+                    <div class="alert-success">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>
+                        <?php echo htmlspecialchars($success_msg); ?>
                     </div>
-                    
-                    <?php if ($is_done): ?>
-                         <div style="margin-top: 1rem;">
-                            <p style="font-size: 0.9rem; color: #059669;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><polyline points="20 6 9 17 4 12"/></svg> Anda sudah mengumpulkan tugas ini. 
-                                <?php if ($submission['submitted_files']):
-                    $s_files = explode(',', $submission['submitted_files']);
-                    foreach ($s_files as $idx => $sf):
-?>
-                                    <br><a href="../../<?php echo htmlspecialchars($sf); ?>" target="_blank" style="text-decoration: underline;">Lihat file ke-<?php echo $idx + 1; ?></a>
-                                <?php
-                    endforeach;
-                endif; ?>
+                <?php endif; ?>
+                <?php if ($error_msg): ?>
+                    <div class="alert-error">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <?php echo htmlspecialchars($error_msg); ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Already submitted -->
+                <?php if ($existing_submission): ?>
+                <div class="done-card">
+                    <div class="done-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <?php if (($assignment['assignment_type'] ?? 'tugas') === 'absensi'): ?>
+                        <h3>Kehadiran Tercatat: <?php echo ucfirst($existing_submission['status']); ?></h3>
+                        <p>Dicatat pada <?php echo date('d M Y, H:i', strtotime($existing_submission['submitted_at'])); ?></p>
+                    <?php else: ?>
+                        <h3>Tugas Sudah Dikumpulkan</h3>
+                        <p>Dikumpulkan pada <?php echo date('d M Y, H:i', strtotime($existing_submission['submitted_at'])); ?>
+                        <?php if ($existing_submission['status'] === 'terlambat'): ?>
+                            &middot; <span style="color:#d97706;font-weight:700;">Terlambat</span>
+                        <?php endif; ?>
+                        </p>
+                        <?php if ($existing_submission['grade'] !== null): ?>
+                            <p style="margin-top:10px;font-size:1.1rem;font-weight:800;color:#0f172a;">
+                                Nilai: <?php echo htmlspecialchars($existing_submission['grade']); ?>
                             </p>
-                            <?php if (!empty($submission['feedback'])): ?>
-                                <div style="margin-top: 0.5rem; background: #fffbeb; padding: 0.75rem; border-radius: 6px; border-left: 3px solid #f59e0b; font-size: 0.9rem;">
-                                    <strong><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Komentar Guru:</strong> <?php echo htmlspecialchars($submission['feedback']); ?>
-                                </div>
-                            <?php
-                endif; ?>
-                         </div>
-                    <?php
-            else: ?>
-                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                            <form method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                                <input type="hidden" name="assignment_id" value="<?php echo $a['id']; ?>">
-                                <input type="hidden" name="submit_assignment" value="1">
-                                
-                                <div style="flex: 1;">
-                                    <label style="display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600;">Upload Jawaban Anda (Bisa banyak file):</label>
-                                    <input type="file" name="files[]" multiple required style="width: 100%; border: 1px solid #cbd5e1; padding: 8px;">
-                                </div>
-                                <button type="submit" class="btn" style="height: fit-content; margin-top: 20px;">Kirim Tugas</button>
-                            </form>
-                        </div>
-                    <?php
-            endif; ?>
+                        <?php else: ?>
+                            <p style="margin-top:6px;color:#64748b;">Menunggu penilaian dari guru.</p>
+                        <?php endif; ?>
+                        <?php if ($existing_submission['file_path']): ?>
+                            <a href="/<?php echo htmlspecialchars($existing_submission['file_path']); ?>" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 16px;background:#dbeafe;color:#1d4ed8;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Lihat File yang Dikumpulkan
+                            </a>
+                        <?php endif; ?>
+                    <?php endif; ?>
                 </div>
 
-                <?php
-        endif; // End check assignment type ?>
-            <?php
-    endforeach; ?>
+                <?php else: ?>
+                <!-- Submission Form -->
+                <div class="assign-form-card">
+                    <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <?php echo (($assignment['assignment_type'] ?? 'tugas') === 'absensi') ? 'Form Kehadiran' : 'Form Pengumpulan Tugas'; ?>
+                    </h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        <?php if (($assignment['assignment_type'] ?? 'tugas') === 'absensi'): ?>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 10px;">Pilih Status Kehadiran Anda:</label>
+                                <div style="display: flex; gap: 16px; align-items: center;">
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;"><input type="radio" name="status" value="hadir" checked> Hadir</label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;"><input type="radio" name="status" value="sakit"> Sakit</label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;"><input type="radio" name="status" value="izin"> Izin</label>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">Catatan: Absensi hanya dapat diisi pada pukul 07:00 - 16:00 WITA.</p>
+                            </div>
+                            <button type="submit" class="submit-btn" style="background: #10b981;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                Simpan Kehadiran
+                            </button>
+                        <?php else: ?>
+                            <div class="form-group">
+                                <label>Upload File (PDF, Word, PPT, gambar, ZIP - maks. 20MB)</label>
+                                <div class="file-upload-area" onclick="document.getElementById('sub_file').click()">
+                                    <input type="file" id="sub_file" name="submission_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.rar,application/pdf,image/jpeg,image/png,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="document.getElementById('file_label').textContent = this.files[0]?.name || 'Klik untuk pilih file'">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <label id="file_label">Klik untuk pilih file</label>
+                                </div>
+                                <div style="margin-top: 10px; padding: 10px 12px; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.8rem; color: #92400e; line-height: 1.5;">
+                                    <strong>&#128161; Tips jika gagal upload:</strong> Jika Anda mengalami error seperti <em>"ERR_UPLOAD_FILE_CHANGED"</em>, silakan pilih file melalui menu <strong>File Manager / Penyimpanan Internal</strong> HP Anda, hindari memilih dari tab "Terbaru" (Recent) atau "Galeri".
+                                </div>
+                            </div>
+                            <button type="submit" class="submit-btn <?php echo $is_overdue ? 'late' : ''; ?>">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                <?php echo $is_overdue ? 'Kumpulkan Tugas (Terlambat)' : 'Kumpulkan Tugas'; ?>
+                            </button>
+                        <?php endif; ?>
+                    </form>
+                </div>
+                <?php endif; ?>
+
+            </div>
         </div>
-        <?php
-endif; ?>
-        </div><!-- end content-overlap -->
     </main>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('sub_file');
+    const form = fileInput ? fileInput.closest('form') : null;
+    let fileBlob = null;
+    let fileName = '';
 
+    if (fileInput && form) {
+        // Remove standard onchange so it doesn't conflict
+        fileInput.removeAttribute('onchange');
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            
+            fileName = file.name;
+            const label = document.getElementById('file_label');
+            if (label) label.textContent = fileName;
+            
+            // Baca file ke RAM segera setelah dipilih untuk mencegah ERR_UPLOAD_FILE_CHANGED
+            // bug bawaan Google Chrome di Android (terutama Xiaomi/Samsung).
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                fileBlob = new Blob([evt.target.result], { type: file.type });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        form.addEventListener('submit', function(e) {
+            if (fileBlob) {
+                e.preventDefault();
+                const submitBtn = form.querySelector('.submit-btn');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Sedang Mengupload...';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.7';
+                }
+
+                const formData = new FormData(form);
+                // Timpa file asli dengan Blob yang sudah ada di RAM
+                formData.set('submission_file', fileBlob, fileName);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(err => {
+                    alert('Gagal mengupload tugas, silakan coba lagi: ' + err.message);
+                    if (submitBtn) {
+                        submitBtn.innerHTML = 'Coba Lagi';
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
 </body>
-
+</html>

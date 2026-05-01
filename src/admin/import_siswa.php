@@ -372,12 +372,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Import Siswa - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="admin-full-layout">
+<body>
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
@@ -439,27 +440,32 @@ endif; ?>
                 <div class="form-group">
                     <label>Contoh Isi Tabel:</label>
                     <div style="overflow-x: auto;">
-                    <table style="width:100%; border-collapse: collapse; font-size: 0.8rem; border: 1px solid #e2e8f0; min-width: 600px;">
-                        <tr style="background: #f1f5f9; text-align: left;">
-                            <th style="padding: 5px;">Identity</th>
-                            <th style="padding: 5px;">Password</th>
-                            <th style="padding: 5px;">Name</th>
-                            <th style="padding: 5px;">Role (Diabaikan)</th>
-                            <th style="padding: 5px;">Status</th>
-                            <th style="padding: 5px;">Kelas</th>
-                            <th style="padding: 5px;">Gender</th>
-                            <th style="padding: 5px;">Alamat</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">2023001</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">smanegeri4makassar</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">Budi S</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">siswa</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">active</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">X-1</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">L</td>
-                            <td style="padding: 5px; border-top: 1px solid #e2e8f0;">Jl. Mawar</td>
-                        </tr>
+                    <div class="page-table-wrap">
+                    <table class="page-table">
+                        <thead>
+                            <tr>
+                                <th>Identity</th>
+                                <th>Password</th>
+                                <th>Name</th>
+                                <th>Role (Diabaikan)</th>
+                                <th>Status</th>
+                                <th>Kelas</th>
+                                <th>Gender</th>
+                                <th>Alamat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2023001</td>
+                                <td>smanegeri4makassar</td>
+                                <td>Budi S</td>
+                                <td>siswa</td>
+                                <td>active</td>
+                                <td>X-1</td>
+                                <td>L</td>
+                                <td>Jl. Mawar</td>
+                            </tr>
+                        </tbody>
                     </table>
                     </div>
                 </div>
@@ -473,4 +479,5 @@ endif; ?>
 
 </body>
 </html>
+
 

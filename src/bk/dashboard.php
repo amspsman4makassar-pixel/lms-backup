@@ -48,63 +48,12 @@ else $greeting = "Selamat Malam";
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Dashboard Guru BK</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .main-content { max-width: 100% !important; background: #f5f7fb !important; padding: 0 !important; }
-        /* Hero BK: ungu / violet (layanan konseling, beda dari indigo & pimpinan) */
-        .db-hero {
-            position: relative;
-            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 45%, #7c3aed 100%);
-            color: white;
-            padding: 2.5rem 3rem 5.5rem 5rem;
-            width: 100%;
-            border-bottom-right-radius: 60px;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .db-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            pointer-events: none;
-        }
-        .db-hero::after {
-            content: '';
-            position: absolute;
-            width: 480px; height: 480px;
-            top: -220px; right: -90px;
-            background: radial-gradient(circle, rgba(244, 114, 182, 0.22) 0%, transparent 60%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .hero-inner { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; }
-        .hero-inner h1 { font-size: 1.65rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; margin-bottom: 0.35rem; }
-        .hero-sub { color: rgba(255,255,255,0.7); font-size: 0.88rem; }
-        .hero-date { color: rgba(255,255,255,0.7); font-size: 0.85rem; text-align: right; font-weight: 500; }
-
-        .db-content { position: relative; margin-top: -3rem; padding: 0 3rem 3rem; z-index: 10; }
-        .db-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
-        .db-stat { background: #fff; border-radius: 16px; padding: 22px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-        .db-stat::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; }
-        .db-stat.c1::after { background: linear-gradient(90deg, #6366f1, #a5b4fc); }
-        .db-stat.c2::after { background: linear-gradient(90deg, #f59e0b, #fde68a); }
-        .db-stat.c3::after { background: linear-gradient(90deg, #10b981, #6ee7b7); }
-        .db-stat.c4::after { background: linear-gradient(90deg, #ef4444, #fca5a5); }
-        .db-stat .num { font-size: 2.2rem; font-weight: 900; line-height: 1; margin-bottom: 6px; letter-spacing: -0.03em; }
-        .db-stat.c1 .num { color: #4f46e5; }
-        .db-stat.c2 .num { color: #d97706; }
-        .db-stat.c3 .num { color: #059669; }
-        .db-stat.c4 .num { color: #dc2626; }
-        .db-stat .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
-
-        .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .db-panel { background: #fff; border-radius: 18px; padding: 26px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04); overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .db-panel h3 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #f1f5f9; }
-
         .qa-list { display: flex; flex-direction: column; gap: 8px; }
         .qa-item { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #eef2f7; text-decoration: none; color: inherit; transition: all 0.25s; }
         .qa-item:hover { background: #e0e7ff; border-color: #c7d2fe; transform: translateX(4px); box-shadow: 0 2px 12px rgba(79,70,229,0.06); }
@@ -125,12 +74,7 @@ else $greeting = "Selamat Malam";
         .badge-proses { background: #dbeafe; color: #1e40af; }
         .badge-selesai { background: #d1fae5; color: #065f46; }
 
-        @media (max-width: 900px) {
-            .db-stats { grid-template-columns: repeat(2, 1fr); }
-            .db-grid { grid-template-columns: 1fr; }
-            .db-hero { padding: 2rem 1.5rem 5rem; }
-            .db-content { padding: 0 1.5rem 2rem; }
-        }
+
     </style>
 </head>
 <body>
@@ -139,38 +83,39 @@ else $greeting = "Selamat Malam";
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <div class="db-hero">
-            <div class="hero-inner">
-                <div>
-                    <h1><?php echo $greeting; ?>, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!</h1>
-                    <p class="hero-sub">Dashboard Monitoring Layanan Bimbingan Konseling (E-Counseling)</p>
-                </div>
-                <div class="hero-date"><?php echo $dateStr; ?></div>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title"><?php echo $greeting; ?>, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!</h1>
+                <p class="page-subtitle">Dashboard Monitoring Layanan Bimbingan Konseling (E-Counseling)</p>
+            </div>
+            <div class="page-toolbar-right" style="text-align: right;">
+                <p class="page-subtitle"><?php echo $dateStr; ?></p>
             </div>
         </div>
 
-        <div class="db-content">
+        <div class="page-content">
             <div class="db-stats">
-                <div class="db-stat c1">
+                <div class="db-stat c-violet">
                     <div class="num"><?php echo $total_tickets; ?></div>
                     <div class="lbl">Total Tiket</div>
                 </div>
-                <div class="db-stat c2">
+                <div class="db-stat c-amber">
                     <div class="num"><?php echo $pending_tickets; ?></div>
                     <div class="lbl">Tiket Pending</div>
                 </div>
-                <div class="db-stat c3">
+                <div class="db-stat c-green">
                     <div class="num"><?php echo $resolved_tickets; ?></div>
                     <div class="lbl">Tiket Selesai</div>
                 </div>
-                <div class="db-stat c4">
+                <div class="db-stat c-red">
                     <div class="num"><?php echo $bullying_tickets; ?></div>
                     <div class="lbl">Darurat (Bullying)</div>
                 </div>
             </div>
 
             <div class="db-grid">
-                <div class="db-panel">
+                <div class="page-section">
                     <h3>Akses Cepat</h3>
                     <div class="qa-list">
                         <a href="pengaduan.php" class="qa-item">
@@ -179,7 +124,7 @@ else $greeting = "Selamat Malam";
                                 <div class="qa-title">Kelola Laporan Siswa</div>
                                 <div class="qa-desc">Tanggapi dan perbarui status laporan E-Counseling</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rsaquo;</span>
                         </a>
                         <a href="../profile.php" class="qa-item">
                             <div class="qa-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
@@ -187,12 +132,12 @@ else $greeting = "Selamat Malam";
                                 <div class="qa-title">Profil Saya</div>
                                 <div class="qa-desc">Kelola pengaturan akun</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rsaquo;</span>
                         </a>
                     </div>
                 </div>
 
-                <div class="db-panel">
+                <div class="page-section">
                     <h3>Laporan Masuk Terbaru</h3>
                     <div class="qa-list">
                         <?php if (empty($recent_tickets)): ?>
@@ -206,7 +151,7 @@ else $greeting = "Selamat Malam";
                                 <a href="pengaduan.php" class="ticket-row">
                                     <div class="ticket-info">
                                         <div class="ticket-title"><?php echo htmlspecialchars($t['nama_siswa'] ?: 'Siswa (Anonim)'); ?></div>
-                                        <div class="ticket-meta"><?php echo htmlspecialchars($t['kategori']); ?> · <?php echo date('d M Y', strtotime($t['created_at'])); ?></div>
+                                        <div class="ticket-meta"><?php echo htmlspecialchars($t['kategori']); ?> Â· <?php echo date('d M Y', strtotime($t['created_at'])); ?></div>
                                     </div>
                                     <span class="badge-status <?php echo $badgeClass; ?>"><?php echo htmlspecialchars($t['status']); ?></span>
                                 </a>
@@ -223,13 +168,13 @@ else $greeting = "Selamat Malam";
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
 
                     <!-- Kategori Bar Chart -->
-                    <div class="db-panel">
+                    <div class="page-section">
                         <h3>Distribusi Kategori Pengaduan</h3>
                         <canvas id="chartKategori" height="220"></canvas>
                     </div>
 
                     <!-- Status Donut Chart -->
-                    <div class="db-panel">
+                    <div class="page-section">
                         <h3>Status Tiket Overview</h3>
                         <canvas id="chartStatus" height="220"></canvas>
                     </div>
@@ -237,7 +182,7 @@ else $greeting = "Selamat Malam";
                 </div>
 
                 <!-- Tren Line Chart (full width) -->
-                <div class="db-panel" style="margin-top:20px;">
+                <div class="page-section" style="margin-top:20px;">
                     <h3>Tren Tiket Masuk (6 Bulan Terakhir)</h3>
                     <canvas id="chartTren" height="120"></canvas>
                 </div>
@@ -251,7 +196,7 @@ else $greeting = "Selamat Malam";
 <script>
 const palette = ['#6366f1','#f59e0b','#10b981','#ef4444','#3b82f6','#a855f7','#ec4899'];
 
-// ── Kategori Bar Chart ─────────────────────────────────────
+// â”€â”€ Kategori Bar Chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 new Chart(document.getElementById('chartKategori'), {
     type: 'bar',
     data: {
@@ -274,7 +219,7 @@ new Chart(document.getElementById('chartKategori'), {
     }
 });
 
-// ── Status Donut Chart ─────────────────────────────────────
+// â”€â”€ Status Donut Chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 new Chart(document.getElementById('chartStatus'), {
     type: 'doughnut',
     data: {
@@ -296,7 +241,7 @@ new Chart(document.getElementById('chartStatus'), {
     }
 });
 
-// ── Tren Line Chart ────────────────────────────────────────
+// â”€â”€ Tren Line Chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 new Chart(document.getElementById('chartTren'), {
     type: 'line',
     data: {
@@ -324,3 +269,4 @@ new Chart(document.getElementById('chartTren'), {
 </script>
 </body>
 </html>
+

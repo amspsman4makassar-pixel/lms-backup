@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/pimpinan/dashboard.php
 session_start();
 require_once '../../config/database.php';
@@ -55,175 +55,13 @@ else
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Dashboard Pimpinan</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .main-content {
-            max-width: 100% !important;
-            background: #f5f7fb !important;
-            padding: 0 !important;
-        }
-        
-        /* Hero pimpinan: navy + aksen emas (formal, beda dari admin slate) */
-        .db-hero {
-            position: relative;
-            background: linear-gradient(135deg, #172554 0%, #1e3a8a 48%, #312e81 100%);
-            color: white;
-            padding: 2.5rem 3rem 5.5rem 5rem;
-            width: 100%;
-            border-bottom-right-radius: 60px;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .db-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            pointer-events: none;
-        }
-        .db-hero::after {
-            content: '';
-            position: absolute;
-            width: 500px; height: 500px;
-            top: -250px; right: -100px;
-            background: radial-gradient(circle, rgba(250, 204, 21, 0.2) 0%, transparent 58%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .hero-inner {
-            position: relative; z-index: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .hero-inner h1 {
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.35rem;
-        }
-        .hero-sub { color: rgba(255,255,255,0.55); font-size: 0.88rem; }
-        .hero-date {
-            color: rgba(255,255,255,0.45);
-            font-size: 0.85rem;
-            text-align: right;
-            font-weight: 500;
-        }
-
-        .db-content {
-            position: relative;
-            margin-top: -3rem;
-            padding: 0 3rem 3rem;
-            z-index: 10;
-        }
-        .db-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .db-stat {
-            background: #fff;
-            border-radius: 16px;
-            padding: 22px 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            animation: fade-up 0.4s ease-out both;
-        }
-        .db-stat:nth-child(1) { animation-delay: 0.05s; }
-        .db-stat:nth-child(2) { animation-delay: 0.1s; }
-        .db-stat:nth-child(3) { animation-delay: 0.15s; }
-        .db-stat:nth-child(4) { animation-delay: 0.2s; }
-        @keyframes fade-up {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .db-stat::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 100%; height: 3px;
-        }
-        .db-stat.c1::after { background: linear-gradient(90deg, #0ea5e9, #7dd3fc); }
-        .db-stat.c2::after { background: linear-gradient(90deg, #6366f1, #a5b4fc); }
-        .db-stat.c3::after { background: linear-gradient(90deg, #10b981, #6ee7b7); }
-        .db-stat.c4::after { background: linear-gradient(90deg, #f59e0b, #fde68a); }
-        .db-stat:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-        }
-        .db-stat .num {
-            font-size: 2.2rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-            letter-spacing: -0.03em;
-        }
-        .db-stat.c1 .num { color: #0284c7; }
-        .db-stat.c2 .num { color: #4f46e5; }
-        .db-stat.c3 .num { color: #059669; }
-        .db-stat.c4 .num { color: #d97706; }
-        .db-stat .lbl {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-        }
-
-        .db-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            animation: fade-up 0.4s ease-out 0.3s both;
-        }
-        .db-panel {
-            background: #fff;
-            border-radius: 18px;
-            padding: 26px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .db-panel h3 {
-            font-size: 0.82rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-            margin-bottom: 18px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        /* Table */
-        .user-table { width: 100%; border-collapse: collapse; }
-        .user-table th {
-            text-align: left;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-            padding: 0 0 12px;
-        }
-        .user-table td {
-            padding: 12px 0;
-            border-top: 1px solid #f1f5f9;
-            font-size: 0.88rem;
-        }
-        .user-table .name { font-weight: 600; color: #1e293b; }
-        .date-muted { color: #94a3b8; font-size: 0.82rem; }
-
-        /* Quick Actions */
         .qa-list { display: flex; flex-direction: column; gap: 8px; }
         .qa-item {
             display: flex;
@@ -264,23 +102,6 @@ else
             transition: all 0.2s;
         }
         .qa-item:hover .qa-arrow { color: #0ea5e9; transform: translateX(3px); }
-
-        @media (max-width: 900px) {
-            .db-stats { grid-template-columns: repeat(2, 1fr); }
-            .db-grid { grid-template-columns: 1fr; }
-            
-            .db-hero { 
-                margin: -5rem -1.5rem 2rem -1.5rem;
-                padding: 5rem 1.5rem 4rem 1.5rem;
-                width: calc(100% + 3rem);
-                border-bottom-right-radius: 40px;
-            }
-            
-            .db-content { 
-                margin-top: -3rem;
-                padding: 0 1.5rem 2rem; 
-            }
-        }
     </style>
 </head>
 <body>
@@ -289,31 +110,31 @@ else
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <div class="db-hero">
-            <div class="hero-inner">
-                <div>
-                    <h1><?php echo $greeting; ?>, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!</h1>
-                    <p class="hero-sub">Dashboard Monitoring <?php echo $role_display; ?></p>
-                </div>
-                <div class="hero-date"><?php echo $dateStr; ?></div>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title"><?php echo $greeting; ?>, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!</h1>
+                <p class="page-subtitle">Dashboard Monitoring <?php echo $role_display; ?></p>
+            </div>
+            <div class="page-toolbar-right" style="text-align: right;">
+                <p class="page-subtitle"><?php echo $dateStr; ?></p>
             </div>
         </div>
 
-        <div class="db-content">
+        <div class="page-content">
             <div class="db-stats">
-                <div class="db-stat c1">
+                <div class="db-stat c-blue">
                     <div class="num"><?php echo $stats['guru']; ?></div>
                     <div class="lbl">Total Guru</div>
                 </div>
-                <div class="db-stat c2">
+                <div class="db-stat c-violet">
                     <div class="num"><?php echo $stats['siswa']; ?></div>
                     <div class="lbl">Total Siswa</div>
                 </div>
-                <div class="db-stat c3">
+                <div class="db-stat c-amber">
                     <div class="num"><?php echo $stats['classes']; ?></div>
                     <div class="lbl">Total Kelas</div>
                 </div>
-                <div class="db-stat c4">
+                <div class="db-stat c-green">
                     <div class="num"><?php echo $stats['news']; ?></div>
                     <div class="lbl">Berita Sekolah</div>
                 </div>
@@ -331,7 +152,7 @@ else
                                 <div class="qa-title">Data Guru</div>
                                 <div class="qa-desc">Pantau daftar dan jadwal guru</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rarr;</span>
                         </a>
                         <a href="siswa_list.php" class="qa-item">
                             <div class="qa-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
@@ -339,7 +160,7 @@ else
                                 <div class="qa-title">Data Siswa</div>
                                 <div class="qa-desc">Pantau daftar siswa per kelas</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rarr;</span>
                         </a>
                         <a href="jadwal_sekolah.php" class="qa-item">
                             <div class="qa-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
@@ -347,7 +168,7 @@ else
                                 <div class="qa-title">Jadwal Sekolah</div>
                                 <div class="qa-desc">Lihat jadwal kegiatan belajar mengajar</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rarr;</span>
                         </a>
                     </div>
                 </div>
@@ -355,28 +176,30 @@ else
                 <!-- Recent News -->
                 <div class="db-panel">
                     <h3>Berita & Informasi Terbaru</h3>
-                    <table class="user-table">
-                        <thead>
-                            <tr>
-                                <th>Judul Informasi</th>
-                                <th>Tanggal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($recent_news)): ?>
-                            <tr>
-                                <td colspan="2" style="text-align:center; color:#94a3b8;">Belum ada informasi.</td>
-                            </tr>
-                            <?php else: ?>
-                                <?php foreach ($recent_news as $n): ?>
+                    <div class="page-table-wrap">
+                        <table class="page-table">
+                            <thead>
                                 <tr>
-                                    <td class="name"><?php echo htmlspecialchars($n['title']); ?></td>
-                                    <td class="date-muted"><?php echo date('d M Y', strtotime($n['created_at'])); ?></td>
+                                    <th>Judul Informasi</th>
+                                    <th style="text-align: right;">Tanggal</th>
                                 </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($recent_news)): ?>
+                                <tr>
+                                    <td colspan="2" style="text-align:center; color:#94a3b8;">Belum ada informasi.</td>
+                                </tr>
+                                <?php else: ?>
+                                    <?php foreach ($recent_news as $n): ?>
+                                    <tr>
+                                        <td class="name" style="font-weight: 600;"><?php echo htmlspecialchars($n['title']); ?></td>
+                                        <td class="date-muted" style="text-align: right; color: #94a3b8;"><?php echo date('d M Y', strtotime($n['created_at'])); ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Tracer Study Chart -->
@@ -432,3 +255,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+

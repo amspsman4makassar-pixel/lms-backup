@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'guru') {
 // Set active sidebar
 $active_tab = 'kelas';
 
-// â”€â”€â”€ Auto-Migration: Ensure is_archived column exists in submissions â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Auto-Migration: Ensure is_archived column exists in submissions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 try {
     $check = $pdo->query("SHOW COLUMNS FROM submissions LIKE 'is_archived'");
     if ($check->rowCount() == 0) {
@@ -22,7 +22,7 @@ try {
 catch (Exception $e) {
 // Silent fail or log
 }
-// â”€â”€â”€ End Auto-Migration â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ End Auto-Migration Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 // Back Link Logic
 $back_url = 'kelas.php';
@@ -118,7 +118,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
-// â”€â”€â”€ Handle Edit Assignment â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Edit Assignment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_assignment'])) {
     $id = $_POST['assignment_id'];
     $title = $_POST['title'];
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_assignment'])) {
     exit;
 }
 
-// â”€â”€â”€ Handle Reset Submissions â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Reset Submissions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_submissions'])) {
     $id = $_POST['assignment_id'];
     $teacher_id = $_SESSION['user_id'];
@@ -279,10 +279,10 @@ $total_archived = array_sum(array_map(fn($g) => count($g['assignments']), $group
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kelola Tugas - Guru</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="unified-layout">
 
@@ -291,31 +291,21 @@ $total_archived = array_sum(array_map(fn($g) => count($g['assignments']), $group
     
     <main class="main-content">
         <!-- Unified Dashboard Hero -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <div style="margin-bottom: 1rem;">
-                    <a href="<?php echo htmlspecialchars($back_url); ?>" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 20px; width: fit-content; backdrop-filter: blur(4px);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-                        <?php echo htmlspecialchars($back_text); ?>
-                    </a>
-                </div>
-                <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Kelola Tugas & Ujian</h1>
-                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 600px;">Buat, bagikan, dan nilai tugas siswa.</p>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kelola Tugas</h1>
+                <p class="page-subtitle">Buat dan kelola tugas untuk kelas Anda</p>
             </div>
-
-            <!-- Decorative circle -->
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         </div>
 
-        <!-- Content Overlap Wrapper -->
-        <div class="content-overlap">
+        <div class="page-content">
 
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
             <!-- List Tugas -->
             <div style="display: flex; flex-direction: column; gap: 2rem;">
 
                 <!-- ===== ACTIVE ===== -->
-                <div class="card">
+                <div class="page-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <div>
                             <h3 style="margin: 0;">Daftar Tugas Aktif</h3>
@@ -401,7 +391,7 @@ $total_archived = array_sum(array_map(fn($g) => count($g['assignments']), $group
                 </div>
 
                 <!-- ===== ARCHIVED ===== -->
-                <div class="card" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
+                <div class="page-section" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
                     <h3 style="color: #64748b; font-size: 1rem; margin-bottom: 1rem;">Tugas Diarsipkan / Ditarik</h3>
                     <?php if (empty($grouped_archived)): ?>
                         <p style="color: var(--text-muted); font-size: 0.9rem;">Belum ada tugas yang diarsipkan.</p>
@@ -438,7 +428,7 @@ $total_archived = array_sum(array_map(fn($g) => count($g['assignments']), $group
             </div>
             
             <!-- Create Form -->
-            <div class="card" style="height: fit-content;">
+            <div class="page-section" style="height: fit-content;">
                 <h3>Buat Tugas Baru</h3>
                 <?php
 if (isset($_SESSION['flash'])) {
@@ -512,7 +502,7 @@ endforeach; ?>
     </main>
 </div>
 
-<!-- â•â•â• Edit Assignment Modal â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Edit Assignment Modal Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="editAssignmentModal" class="modal-overlay" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
     <div class="modal-box" style="background:#fff; margin:2% auto; padding:2rem; border-radius:18px; width:90%; max-width:600px; position:relative; max-height: 90vh; overflow-y: auto;">
         <button onclick="document.getElementById('editAssignmentModal').style.display='none'" style="position:absolute; right:20px; top:20px; font-size:1.5rem; background:none; border:none; cursor:pointer;">&times;</button>
@@ -596,4 +586,5 @@ function toggleAccordion(id) {
 
 </body>
 </html>
+
 

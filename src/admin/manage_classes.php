@@ -130,119 +130,116 @@ $all_tc = $pdo->query("
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kelola Kelas - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="admin-full-layout">
+<body>
 
     <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
         <!-- Unified Hero Header -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;">&#127979; Kelola Kelas Guru</h1>
-                <p style="color: rgba(255,255,255,0.8);">Buat dan kelola kelas untuk setiap guru</p>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kelola Kelas</h1>
+                <p class="page-subtitle">Buat dan atur kelas yang dapat digunakan oleh guru</p>
             </div>
-            
-            <div style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); z-index: 10;">
-                 <a href="promote_class.php" class="btn" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Kenaikan Kelas
-                </a>
-            </div>
-
-            <!-- Decorative circle -->
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; blur: 20px;"></div>
         </div>
+            <a href="promote_class.php" class="btn btn-glass">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                Kenaikan Kelas
+            </a>
+            <div class="hero-deco hero-deco-tr"></div>
+        <div class="page-content">
 
-        <div class="content-overlap">
-            
-            <!-- Action Bar -->
-            <div style="margin-bottom: 20px;">
-                <button onclick="document.getElementById('createClassModal').showModal()" class="btn btn-primary" style="box-shadow: var(--shadow-md);">
-                    &#10133; Tambah Kelas Baru
+            <div class="page-actions">
+                <button onclick="document.getElementById('createClassModal').showModal()" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Tambah Kelas Baru
                 </button>
             </div>
 
-            <!-- Existing Classes Table -->
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
-                    <h3>&#128218; Daftar Kelas Guru</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <span class="badge" style="background: #eff6ff; color: #1d4ed8;">Total: <?php echo count($all_tc); ?> kelas</span>
-                        <span class="badge" style="background: #f0fdf4; color: #15803d;">Guru: <?php echo count($teachers); ?> orang</span>
+            <div class="page-section">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                        Daftar Kelas Guru
+                    </h3>
+                    <div class="panel-meta">
+                        <span style="background:#dbeafe;color:#1e40af;padding:3px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;">Kelas: <?= count($all_tc) ?></span>
+                        <span style="background:#dcfce7;color:#166534;padding:3px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;">Guru: <?= count($teachers) ?></span>
                     </div>
                 </div>
 
-                <?php
-if (isset($_SESSION['flash'])) {
-    $flash = $_SESSION['flash'];
-    $cls = ($flash['type'] == 'error') ? 'badge-danger' : 'badge-success';
-    $ico = ($flash['type'] == 'error') ? '&#10060;' : '&#9989;';
-    echo "<div class='badge $cls' style='display:block; padding:10px; margin-bottom:15px; text-align:center;'>$ico " . htmlspecialchars($flash['message']) . "</div>";
-    unset($_SESSION['flash']);
-}
-?>
+                <?php if (isset($_SESSION['flash'])): $flash = $_SESSION['flash']; unset($_SESSION['flash']); ?>
+                    <div class="<?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>">
+                        <?= $flash['type'] === 'error'
+                            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+                            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'; ?>
+                        <?= htmlspecialchars($flash['message']) ?>
+                    </div>
+                <?php endif; ?>
 
                 <?php if (empty($all_tc)): ?>
-                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        <div style="font-size: 3rem; margin-bottom: 10px;">&#128218;</div>
-                        <p>Belum ada kelas yang dibuat.</p>
+                    <div class="empty-state">
+                        <div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></div>
+                        <h4>Belum ada kelas yang dibuat</h4>
+                        <p>Klik "Tambah Kelas Baru" untuk mulai membuat kelas guru.</p>
                     </div>
-                <?php
-else: ?>
-                    <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Guru</th>
-                                <th>Nama Kelas</th>
-                                <th>Kelas</th>
-                                <th>Mata Pelajaran</th>
-                                <th>Tanggal</th>
-                                <th style="text-align: right;">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($all_tc as $tc): ?>
-                            <tr>
-                                <td><strong><?php echo htmlspecialchars($tc['teacher_name']); ?></strong></td>
-                                <td>
-                                    <?php echo htmlspecialchars($tc['custom_name']); ?>
-                                    <?php if(isset($tc['is_special_class']) && $tc['is_special_class']) echo '<span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px; border: 1px solid #fde68a;">Kelas Khusus</span>'; ?>
-                                </td>
-                                <td>
-                                    <?php if (isset($tc['is_special_class']) && $tc['is_special_class']): ?>
-                                        <span class="badge" style="background: #fdf4ff; color: #86198f; border: 1px solid #fae8ff;">Lintas Kelas <?php echo htmlspecialchars($tc['special_grade_level'] ?? ''); ?></span>
-                                    <?php else: ?>
-                                        <span class="badge" style="background: #dbeafe; color: #1e40af;"><?php echo htmlspecialchars($tc['class_name'] ?? ''); ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><span class="badge" style="background: #ede9fe; color: #5b21b6;"><?php echo htmlspecialchars($tc['subject']); ?></span></td>
-                                <td style="color: var(--text-muted); font-size: 0.85rem;"><?php echo date('d M Y', strtotime($tc['created_at'])); ?></td>
-                                <td style="text-align: right;">
-                                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                        <?php if (!isset($tc['is_special_class']) || !$tc['is_special_class']): ?>
-                                        <button type="button" class="btn" style="padding: 6px 12px; font-size: 0.8rem; background: #dbeafe; color: #1d4ed8; border: none; cursor: pointer;" onclick="openEditModal(<?php echo $tc['id']; ?>, <?php echo $tc['teacher_id'] ?? 0; ?>, <?php echo $tc['class_id'] ?? 0; ?>, '<?php echo htmlspecialchars($tc['subject'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($tc['custom_name'], ENT_QUOTES); ?>')">Edit</button>
+                <?php else: ?>
+                    <div class="page-table-wrap" style="border:none;border-radius:0;margin-bottom:0;">
+                        <table class="page-table">
+                            <thead>
+                                <tr>
+                                    <th>Guru</th>
+                                    <th>Nama Kelas</th>
+                                    <th>Kelas</th>
+                                    <th>Mata Pelajaran</th>
+                                    <th>Tanggal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($all_tc as $tc): ?>
+                                <tr>
+                                    <td style="font-weight:600;color:#0f172a;"><?= htmlspecialchars($tc['teacher_name']) ?></td>
+                                    <td>
+                                        <?= htmlspecialchars($tc['custom_name']) ?>
+                                        <?php if (!empty($tc['is_special_class'])): ?>
+                                            <span style="font-size:0.72rem;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;margin-left:5px;border:1px solid #fde68a;">Kelas Khusus</span>
                                         <?php endif; ?>
-                                        <form method="POST" onsubmit="return confirm('Yakin hapus kelas ini?');" style="margin:0;">
-                                            <input type="hidden" name="delete_class" value="1">
-                                            <input type="hidden" name="tc_id" value="<?php echo $tc['id']; ?>">
-                                            <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">Hapus</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php
-    endforeach; ?>
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($tc['is_special_class'])): ?>
+                                            <span class="badge-subj">Lintas Kelas <?= htmlspecialchars($tc['special_grade_level'] ?? '') ?></span>
+                                        <?php else: ?>
+                                            <span class="badge-class"><?= htmlspecialchars($tc['class_name'] ?? '') ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><span class="badge-subj"><?= htmlspecialchars($tc['subject']) ?></span></td>
+                                    <td style="color:#94a3b8;font-size:0.83rem;"><?= date('d M Y', strtotime($tc['created_at'])) ?></td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;">
+                                            <?php if (empty($tc['is_special_class'])): ?>
+                                                <button type="button" class="sub-btn" onclick="openEditModal(<?= $tc['id'] ?>, <?= $tc['teacher_id'] ?? 0 ?>, <?= $tc['class_id'] ?? 0 ?>, '<?= htmlspecialchars($tc['subject'], ENT_QUOTES) ?>', '<?= htmlspecialchars($tc['custom_name'], ENT_QUOTES) ?>')">Edit</button>
+                                            <?php endif; ?>
+                                            <form method="POST" onsubmit="return confirm('Yakin hapus kelas ini?');" style="margin:0;">
+                                                <input type="hidden" name="delete_class" value="1">
+                                                <input type="hidden" name="tc_id" value="<?= $tc['id'] ?>">
+                                                <button type="submit" class="sub-btn danger">Hapus</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
-                <?php
-endif; ?>
+                <?php endif; ?>
             </div>
 
         </div>
@@ -250,18 +247,12 @@ endif; ?>
 </div>
 
 <!-- Modal for Create Class -->
-<dialog id="createClassModal" style="border: none; border-radius: 16px; padding: 0; box-shadow: 0 25px 50px rgba(0,0,0,0.25); width: 100%; max-width: 500px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">
-    <style>
-        #createClassModal::backdrop {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-    </style>
-    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">&#10133; Buat Kelas Baru</h3>
-        <button onclick="document.getElementById('createClassModal').close()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+<dialog id="createClassModal">
+    <div class="modal-header">
+        <h3>Buat Kelas Baru</h3>
+        <button class="modal-close" onclick="document.getElementById('createClassModal').close()">&times;</button>
     </div>
-    <div style="padding: 20px;">
+    <div class="modal-body">
         <form method="POST">
             <input type="hidden" name="create_class" value="1">
 
@@ -303,8 +294,8 @@ endforeach; ?>
                 <input type="text" name="class_name_custom" id="customName" required placeholder="Auto-generated atau ketik manual" class="filter-input" style="width: 100%;">
             </div>
 
-            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" onclick="document.getElementById('createClassModal').close()" class="btn" style="background: #e2e8f0; color: #475569;">Batal</button>
+            <div class="modal-footer" style="padding:1rem 0 0;border:none;">
+                <button type="button" onclick="document.getElementById('createClassModal').close()" class="btn btn-ghost">Batal</button>
                 <button type="submit" class="btn btn-primary">Buat Kelas</button>
             </div>
         </form>
@@ -312,18 +303,12 @@ endforeach; ?>
 </dialog>
 
 <!-- Modal for Edit Class -->
-<dialog id="editClassModal" style="border: none; border-radius: 16px; padding: 0; box-shadow: 0 25px 50px rgba(0,0,0,0.25); width: 100%; max-width: 500px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">
-    <style>
-        #editClassModal::backdrop {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-    </style>
-    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit Kelas</h3>
-        <button onclick="document.getElementById('editClassModal').close()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+<dialog id="editClassModal">
+    <div class="modal-header">
+        <h3>Edit Kelas</h3>
+        <button class="modal-close" onclick="document.getElementById('editClassModal').close()">&times;</button>
     </div>
-    <div style="padding: 20px;">
+    <div class="modal-body">
         <form method="POST">
             <input type="hidden" name="edit_class" value="1">
             <input type="hidden" name="tc_id" id="edit_tc_id">
@@ -366,8 +351,8 @@ endforeach; ?>
                 <input type="text" name="class_name_custom" id="edit_customName" required placeholder="Nama kelas" class="filter-input" style="width: 100%;">
             </div>
 
-            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" onclick="document.getElementById('editClassModal').close()" class="btn" style="background: #e2e8f0; color: #475569;">Batal</button>
+            <div class="modal-footer" style="padding:1rem 0 0;border:none;">
+                <button type="button" onclick="document.getElementById('editClassModal').close()" class="btn btn-ghost">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
             </div>
         </form>
@@ -429,4 +414,5 @@ function openEditModal(tcId, teacherId, classId, subjectName, customName) {
 
 </body>
 </html>
+
 

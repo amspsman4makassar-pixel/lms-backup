@@ -83,150 +83,11 @@ $existing_grades = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Input Nilai - <?php echo htmlspecialchars($class_info['name']); ?></title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .page-header {
-            background: white;
-            padding: 24px 32px;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .class-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 4px;
-        }
-        .class-meta {
-            color: #64748b;
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-        .filters-form {
-            background: white;
-            padding: 20px 32px;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-            display: flex;
-            gap: 20px;
-            align-items: flex-end;
-        }
-        .form-group-filter {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .form-group-filter label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .form-group-filter select {
-            padding: 10px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-family: inherit;
-            font-weight: 600;
-            color: #1e293b;
-            min-width: 180px;
-            cursor: pointer;
-        }
-        .grades-panel {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-        .grades-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .grades-table th, .grades-table td {
-            padding: 16px 24px;
-            text-align: left;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .grades-table th {
-            background: #f8fafc;
-            color: #64748b;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .grades-table td {
-            color: #1e293b;
-            font-weight: 500;
-        }
-        .grade-input {
-            width: 80px;
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 700;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-        .grade-input:focus {
-            border-color: #4f46e5;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        .top-actions {
-            display: flex; gap: 12px;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #e2e8f0;
-            color: #475569;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-        .btn-outline:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
-        }
-        .sticky-footer {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            padding: 20px 32px;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: flex-end;
-            gap: 16px;
-            z-index: 10;
-            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: #eef2ff;
-            color: #4338ca;
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-    </style>
+
 </head>
 <body>
 
@@ -236,61 +97,58 @@ $existing_grades = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
     <main class="main-content">
         <?php if ($success): ?>
             <div style="background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;">
-                ✓ <?php echo htmlspecialchars($success); ?>
+                &#10003; <?php echo htmlspecialchars($success); ?>
             </div>
         <?php endif; ?>
         <?php if ($error): ?>
             <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;">
-                ⚠️ <?php echo htmlspecialchars($error); ?>
+                &#9888;ï¸ <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
 
-        <div class="page-header">
-            <div>
-                <span class="badge"><?php echo htmlspecialchars($class_info['subject']); ?></span>
-                <div class="class-title"><?php echo htmlspecialchars($class_info['name']); ?></div>
-                <div class="class-meta">
-                    <?php echo $class_info['is_special_class'] ? 'Siswa Gabungan (Lintas Kelas)' : htmlspecialchars($class_info['school_class_name']); ?> • <?php echo count($students); ?> Siswa
-                </div>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Input Nilai - <?php echo htmlspecialchars($class_info['name']); ?></h1>
+                <p class="page-subtitle"><?php echo htmlspecialchars($class_info['subject']); ?> &middot; <?php echo $class_info['is_special_class'] ? 'Siswa Gabungan (Lintas Kelas)' : htmlspecialchars($class_info['school_class_name']); ?> &middot; <?php echo count($students); ?> Siswa</p>
             </div>
-            <div class="top-actions">
-                <a href="grades.php" class="btn-outline">&larr; Kembali</a>
-                <a href="grades_import.php?class_id=<?php echo $class_id; ?>" class="btn-outline" style="border-color: #10b981; color: #047857; background: #ecfdf5;">📥 Import Excel / CSV</a>
+            <div class="page-toolbar-right">
+                <a href="grades.php" class="btn btn-secondary btn-sm">&larr; Kembali</a>
+                <a href="grades_import.php?class_id=<?php echo $class_id; ?>" class="btn btn-sm" style="background: #10b981; color: white; border: none;">&darr; Import Excel / CSV</a>
             </div>
         </div>
 
-        <form method="GET" action="" id="filterForm" class="filters-form">
-            <input type="hidden" name="class_id" value="<?php echo $class_id; ?>">
-            <div class="form-group-filter">
-                <label>Tahun Ajaran</label>
-                <select name="academic_year" onchange="document.getElementById('filterForm').submit()">
+        <div class="page-content">
+        
+        <div class="page-section" style="margin-bottom: 20px;">
+            <form method="GET" action="" id="filterForm" class="filter-bar" style="margin:0;">
+                <input type="hidden" name="class_id" value="<?php echo $class_id; ?>">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Tahun Ajaran:</span>
+                <select name="academic_year" class="filter-input" onchange="document.getElementById('filterForm').submit()">
                     <option value="2023-2024" <?php if($academic_year=='2023-2024') echo 'selected'; ?>>2023-2024</option>
                     <option value="2024-2025" <?php if($academic_year=='2024-2025') echo 'selected'; ?>>2024-2025</option>
                     <option value="2025-2026" <?php if($academic_year=='2025-2026') echo 'selected'; ?>>2025-2026</option>
                     <option value="2026-2027" <?php if($academic_year=='2026-2027') echo 'selected'; ?>>2026-2027</option>
                 </select>
-            </div>
-            <div class="form-group-filter">
-                <label>Semester</label>
-                <select name="semester" onchange="document.getElementById('filterForm').submit()">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-left: 10px;">Semester:</span>
+                <select name="semester" class="filter-input" onchange="document.getElementById('filterForm').submit()">
                     <option value="Ganjil" <?php if($semester=='Ganjil') echo 'selected'; ?>>Ganjil</option>
                     <option value="Genap" <?php if($semester=='Genap') echo 'selected'; ?>>Genap</option>
                 </select>
-            </div>
-        </form>
+            </form>
+        </div>
 
         <form method="POST" action="">
             <input type="hidden" name="academic_year" value="<?php echo htmlspecialchars($academic_year); ?>">
             <input type="hidden" name="semester" value="<?php echo htmlspecialchars($semester); ?>">
             
-            <div class="grades-panel">
-                <table class="grades-table">
+            <div class="page-table-wrap">
+                <table class="page-table">
                     <thead>
                         <tr>
-                            <th style="width: 50px; text-align: center;">No</th>
-                            <th style="width: 150px;">NIS</th>
+                            <th>No</th>
+                            <th>NIS</th>
                             <th>Nama Siswa</th>
-                            <th style="width: 150px; text-align: center;">Nilai Akhir</th>
+                            <th>Nilai Akhir</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -305,7 +163,7 @@ $existing_grades = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
                                 <td style="color: #64748b;"><?php echo htmlspecialchars($s['nis'] ?? '-'); ?></td>
                                 <td><?php echo htmlspecialchars($s['full_name']); ?></td>
                                 <td style="text-align: center;">
-                                    <input type="number" step="0.01" min="0" max="100" name="grades[<?php echo $s['id']; ?>]" value="<?php echo htmlspecialchars((string)$current_val); ?>" class="grade-input" placeholder="0-100">
+                                    <input type="number" step="0.01" min="0" max="100" name="grades[<?php echo $s['id']; ?>]" value="<?php echo htmlspecialchars((string)$current_val); ?>" class="filter-input" style="width:100px; text-align:center;" placeholder="0-100">
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -315,16 +173,18 @@ $existing_grades = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
             </div>
 
             <?php if (!empty($students)): ?>
-            <div class="sticky-footer">
-                <button type="submit" name="save_grades" class="btn" style="padding: 12px 30px; border-radius: 12px; background: #4f46e5; color: white; border: none; font-weight: 700; cursor: pointer;">
-                    💾 Simpan Nilai
+            <div class="table-footer" style="justify-content: flex-end; margin-top: 20px;">
+                <button type="submit" name="save_grades" class="btn">
+                    Simpan Nilai
                 </button>
             </div>
             <?php endif; ?>
         </form>
+        </div>
 
     </main>
 </div>
 
 </body>
 </html>
+

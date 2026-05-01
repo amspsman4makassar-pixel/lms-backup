@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/guru/view_class.php
 session_start();
 require_once '../../config/database.php';
@@ -51,7 +51,7 @@ $students = $stmt->fetchAll();
 
 
 
-// â”€â”€â”€ Handle Delete Attendance â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Attendance Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_attendance'])) {
     $meeting_num = intval($_POST['meeting_number']);
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_attendance']))
     exit;
 }
 
-// â”€â”€â”€ Handle Edit Class â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Edit Class Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_class'])) {
     $new_name = trim($_POST['class_name']);
 
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_class'])) {
     exit;
 }
 
-// â”€â”€â”€ Handle Remove Student â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Remove Student Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_student_id'])) {
     $student_id = $_POST['remove_student_id'];
     
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_student_id']))
     exit;
 }
 
-// â”€â”€â”€ Handle Add Special Class Student â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Add Special Class Student Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_special_student_ids']) && $class['is_special_class'] == 1) {
     if (is_array($_POST['add_special_student_ids'])) {
         $student_ids = $_POST['add_special_student_ids'];
@@ -148,8 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_special_student_i
     exit;
 }
 
-// â”€â”€â”€ Handle Add Material â”€â”€â”€
-// â”€â”€â”€ Handle Add Material â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Add Material Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Add Material Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_material'])) {
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
@@ -235,8 +235,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_material'])) {
     exit;
 }
 
-// â”€â”€â”€ Handle Delete Material â”€â”€â”€
-// â”€â”€â”€ Handle Delete Material â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Material Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Material Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if (isset($_POST['delete_material_id'])) {
     $del_id = $_POST['delete_material_id'];
     $stmt = $pdo->prepare("SELECT file_path, type FROM materials WHERE id = ? AND teacher_class_id = ?");
@@ -256,7 +256,7 @@ if (isset($_POST['delete_material_id'])) {
     exit;
 }
 
-// â”€â”€â”€ Handle Add Assignment/Absensi â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Add Assignment/Absensi Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_assignment'])) {
     $assignment_type = $_POST['assignment_type']; // 'tugas' or 'absensi'
     $title = trim($_POST['a_title'] ?? '');
@@ -384,8 +384,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_assignment'])) {
     }
 }
 
-// â”€â”€â”€ Handle Delete Assignment â”€â”€â”€
-// â”€â”€â”€ Handle Delete Assignment â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Assignment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Assignment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if (isset($_POST['delete_assignment_id'])) {
     $del_id = $_POST['delete_assignment_id'];
     $pdo->prepare("DELETE FROM assignment_classes WHERE assignment_id = ?")->execute([$del_id]);
@@ -395,26 +395,26 @@ if (isset($_POST['delete_assignment_id'])) {
     exit;
 }
 
-// â”€â”€â”€ Handle Delete Class â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Class Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_class'])) {
     $pdo->prepare("DELETE FROM teacher_classes WHERE id = ?")->execute([$class_id]);
     header("Location: kelas.php");
     exit;
 }
 
-// â”€â”€â”€ Handle Submit Google Meet Link â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Submit Google Meet Link Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_meet_link'])) {
     $meet_link = trim($_POST['meet_link']);
     $start_time = $_POST['start_time'] ?? null;
     $end_time = $_POST['end_time'] ?? null;
 
-    // Normalize: if teacher only typed the code like "uhw-agti-qry" â†’ convert to full URL
+    // Normalize: if teacher only typed the code like "uhw-agti-qry" &rarr; convert to full URL
     if (!empty($meet_link)) {
         // Plain code pattern: 3-4-3 letters (e.g. uhw-agti-qry)
         if (preg_match('/^[a-z]{3}-[a-z]{4}-[a-z]{3}$/i', $meet_link)) {
             $meet_link = 'https://meet.google.com/' . strtolower($meet_link);
         }
-        // Missing protocol: meet.google.com/xxx â†’ add https://
+        // Missing protocol: meet.google.com/xxx &rarr; add https://
         elseif (preg_match('/^meet\.google\.com\//i', $meet_link)) {
             $meet_link = 'https://' . $meet_link;
         }
@@ -436,7 +436,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_meet_link'])) 
     exit;
 }
 
-// â”€â”€â”€ Handle Delete Google Meet Link â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Delete Google Meet Link Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_meet_link'])) {
     $meet_id = $_POST['meet_id'];
     $stmt = $pdo->prepare("DELETE FROM meet_links WHERE id = ? AND teacher_id = ?");
@@ -450,7 +450,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_meet_link'])) 
     exit;
 }
 
-// â”€â”€â”€ Handle Save Attendance â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Handle Save Attendance Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
     $meeting_num = intval($_POST['meeting_number']);
     $statuses = $_POST['status'] ?? [];
@@ -512,7 +512,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_attendance'])) {
 
 }
 
-// â”€â”€â”€ Fetch Data â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Fetch Data Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // Materials
 $stmt = $pdo->prepare("SELECT * FROM materials WHERE teacher_class_id = ? ORDER BY created_at DESC");
 $stmt->execute([$class_id]);
@@ -567,293 +567,11 @@ $meet_links = $stmt->fetchAll();
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($class['name']); ?> - Kelas Saya</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* * { font-family: 'Inter', system-ui, -apple-system, sans-serif; } */
-        .main-content {
-            max-width: 100% !important;
-            background: #f5f7fb !important;
-            padding: 0 !important;
-        }
 
-        /* Hero */
-        .vc-hero {
-            position: relative;
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%);
-            padding: 2rem 3rem 4.5rem 5rem;
-            overflow: hidden;
-        }
-        .vc-hero::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            pointer-events: none;
-        }
-        .hero-top {
-            position: relative; z-index: 2;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .hero-top a.back { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.85rem; }
-        .hero-top a.back:hover { color: #fff; }
-        .hero-info { position: relative; z-index: 2; margin-top: 1rem; }
-        .hero-info h1 { color: #fff; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.3rem; }
-        .hero-info p { color: rgba(255,255,255,0.5); font-size: 0.88rem; }
-        .hero-info .badge-count {
-            display: inline-block;
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        /* Content */
-        .vc-content {
-            position: relative;
-            margin-top: -2.5rem;
-            padding: 0 3rem 3rem;
-            z-index: 10;
-        }
-
-        /* Grid */
-        .vc-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .vc-full { margin-bottom: 20px; }
-        .vc-panel {
-            background: #fff;
-            border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04);
-            animation: fade-up 0.4s ease-out both;
-        }
-        .vc-grid .vc-panel:nth-child(1) { animation-delay: 0.05s; }
-        .vc-grid .vc-panel:nth-child(2) { animation-delay: 0.1s; }
-        .vc-full .vc-panel { animation-delay: 0.15s; }
-
-        @keyframes fade-up {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .panel-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px; padding-bottom: 14px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .panel-header h3 {
-            font-size: 0.82rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.08em;
-            color: #94a3b8; margin: 0;
-        }
-        .btn-add {
-            background: #eef2ff; color: #4f46e5;
-            border: none; padding: 6px 14px;
-            border-radius: 8px; font-size: 0.78rem;
-            font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-add:hover { background: #e0e7ff; }
-
-        /* Item rows */
-        .item-row {
-            display: flex; align-items: center; gap: 12px;
-            padding: 11px 0; border-bottom: 1px solid #f8fafc;
-        }
-        .item-row:last-child { border-bottom: none; }
-        .item-ico {
-            width: 36px; height: 36px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; flex-shrink: 0;
-        }
-        .item-ico.mat { background: #dbeafe; }
-        .item-ico.task { background: #ede9fe; }
-        .item-ico.att  { background: #d1fae5; }
-        .item-info { flex: 1; min-width: 0; }
-        .item-title {
-            font-size: 0.85rem; font-weight: 600; color: #1e293b;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .item-meta { font-size: 0.72rem; color: #94a3b8; margin-top: 1px; }
-        .item-actions { display: flex; gap: 6px; align-items: center; }
-        .item-actions a, .item-actions button {
-            font-size: 0.75rem; padding: 4px 10px; border-radius: 6px;
-            text-decoration: none; border: none; cursor: pointer;
-            font-weight: 600; transition: all 0.2s;
-        }
-        .btn-view { background: #dbeafe; color: #1d4ed8; }
-        .btn-view:hover { background: #bfdbfe; }
-        .btn-del { background: #fee2e2; color: #991b1b; }
-        .btn-del:hover { background: #fecaca; }
-        .btn-grade { background: #ede9fe; color: #5b21b6; }
-        .btn-grade:hover { background: #ddd6fe; }
-
-        .empty-msg {
-            text-align: center; padding: 2rem 1rem; color: #94a3b8; font-size: 0.88rem;
-        }
-
-        /* Attendance row */
-        .att-row {
-            display: flex; align-items: center; gap: 12px;
-            padding: 11px 0; border-bottom: 1px solid #f8fafc;
-        }
-        .att-row:last-child { border-bottom: none; }
-        .att-num {
-            width: 36px; height: 36px; border-radius: 10px;
-            background: #d1fae5; display: flex; align-items: center;
-            justify-content: center; font-weight: 800; font-size: 0.8rem;
-            color: #065f46; flex-shrink: 0;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none; position: fixed; z-index: 1000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-        }
-        .modal-box {
-            background: #fff; margin: 4% auto; padding: 2rem;
-            border-radius: 18px; width: 100%; max-width: 550px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            max-height: 90vh; overflow-y: auto;
-        }
-        .modal-top {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        .modal-top h2 { font-size: 1.15rem; font-weight: 700; color: #1e293b; }
-        .modal-close { cursor: pointer; font-size: 1.5rem; color: #94a3b8; background: none; border: none; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #475569; margin-bottom: 5px; }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
-            border-radius: 10px; font-size: 0.88rem; font-family: inherit;
-            background: #f8fafc; transition: border 0.2s;
-        }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-            outline: none; border-color: #6366f1; background: #fff;
-        }
-        .radio-group {
-            display: flex; gap: 12px; margin-top: 5px;
-        }
-        .radio-group label {
-            display: flex; align-items: center; gap: 6px;
-            cursor: pointer; font-size: 0.85rem; font-weight: 500;
-            padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0;
-            transition: all 0.2s;
-        }
-        .radio-group input[type="radio"] { accent-color: #4f46e5; }
-        .radio-group input[type="radio"]:checked + span { color: #4f46e5; font-weight: 600; }
-        .btn-submit {
-            width: 100%; padding: 12px; border: none; border-radius: 10px;
-            background: #4f46e5; color: #fff; font-size: 0.88rem;
-            font-weight: 700; cursor: pointer; transition: background 0.2s;
-        }
-        .btn-submit:hover { background: #4338ca; }
-
-        /* Delete button */
-        .delete-class-btn {
-            background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
-            padding: 8px 16px; border-radius: 10px; font-size: 0.82rem;
-            font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
-        .delete-class-btn:hover { background: #fecaca; }
-
-        /* Success/Error */
-        .alert-success { background: #dcfce7; color: #166534; padding: 12px 18px; border-radius: 12px; margin-bottom: 16px; font-size: 0.88rem; }
-        .alert-error { background: #fee2e2; color: #991b1b; padding: 12px 18px; border-radius: 12px; margin-bottom: 16px; font-size: 0.88rem; }
-
-        /* Attendance Status Badges */
-        .status-options {
-            display: flex; flex-wrap: wrap; gap: 8px;
-            justify-content: center;
-        }
-        .status-option {
-            display: flex; align-items: center; gap: 4px;
-            cursor: pointer;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            border: 1px solid transparent; /* Default transparent border */
-        }
-        .status-option input[type="radio"] {
-            display: none; /* Hide default radio button */
-        }
-        .status-option.selected {
-            border-color: #4f46e5; /* Highlight selected option */
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-        }
-        .badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .badge-hadir { background: #dcfce7; color: #166534; }
-        .badge-sakit { background: #fee2e2; color: #991b1b; }
-        .badge-izin { background: #fef9c3; color: #854d0e; }
-        .badge-alpha { background: #f1f5f9; color: #64748b; }
-        .badge-terlambat { background: #ffedd5; color: #9a3412; }
-
-
-        @media (max-width: 900px) {
-            .vc-grid { grid-template-columns: 1fr; }
-            .vc-hero { padding: 1.5rem 1.5rem 4rem; }
-            .vc-content { padding: 0 1.5rem 2rem; }
-        }
-
-        /* Optimized Attendance Table */
-        .att-input-table {
-            width: 100%; border-collapse: separate; border-spacing: 0;
-            font-size: 0.9rem;
-        }
-        .att-input-table thead th {
-            background: #f1f5f9; color: #475569;
-            font-weight: 700; text-transform: uppercase;
-            font-size: 0.75rem; letter-spacing: 0.05em;
-            padding: 12px 10px; border-bottom: 2px solid #e2e8f0;
-            text-align: center;
-        }
-        .att-input-table thead th:first-child { text-align: center; border-radius: 8px 0 0 0; }
-        .att-input-table thead th:last-child { border-radius: 0 8px 0 0; }
-        .att-input-table tbody td {
-            padding: 12px 10px; border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-        }
-        .att-input-table tbody tr:hover { background: #f8fafc; }
-        .att-input-table .name-cell { text-align: left; }
-        
-        .radio-cell { text-align: center; cursor: pointer; transition: background 0.2s; }
-        .radio-cell:hover { background: rgba(0,0,0,0.03); }
-        .radio-cell.selected-hadir { background: #dcfce7; }
-        .radio-cell.selected-sakit { background: #fee2e2; }
-        .radio-cell.selected-izin { background: #fef9c3; }
-        .radio-cell.selected-alpha { background: #f1f5f9; }
-        .radio-cell.selected-terlambat { background: #ffedd5; }
-
-        .radio-cell input {
-            transform: scale(1.3); cursor: pointer;
-            accent-color: #4f46e5;
-        }
-        
-        .time-badge {
-            display: inline-block; padding: 4px 10px;
-            background: #f1f5f9; color: #64748b;
-            border-radius: 6px; font-size: 0.75rem; font-weight: 600;
-            font-family: monospace;
-        }
-    </style>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
@@ -863,36 +581,18 @@ $meet_links = $stmt->fetchAll();
     
     <main class="main-content">
 
-        <!-- Hero -->
-        <div class="vc-hero">
-            <div class="hero-top">
-                <a href="kelas.php" class="back">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-                    Kembali ke Daftar Kelas
-                </a>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="document.getElementById('statisticsModal').style.display='block'; loadChart();" class="btn btn-secondary" style="font-size: 0.82rem; padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 5px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Statistik
-                    </button>
-                    <button onclick="document.getElementById('editClassModal').style.display='block'" class="btn btn-secondary" style="font-size: 0.82rem; padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 5px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Kelas
-                    </button>
-                    <form method="POST" onsubmit="return confirm('Hapus kelas ini? Data materi dan tugas di kelas ini tidak terhapus.');" style="margin:0;">
-                        <input type="hidden" name="delete_class" value="1">
-                        <button type="submit" class="delete-class-btn" style="display: flex; align-items: center; gap: 5px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus
-                        </button>
-                    </form>
-                </div>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title"><?php echo htmlspecialchars($class['name']); ?> <?php if($class['is_special_class']) echo '<span style="font-size:0.7rem;background:#fbbf24;color:#78350f;padding:3px 8px;border-radius:4px;vertical-align:middle;margin-left:6px;font-weight:700;">KHUSUS</span>'; ?></h1>
+                <p class="page-subtitle"><?php echo htmlspecialchars($class['subject']); ?> &middot; <?php echo $class['is_special_class'] ? 'Lintas Kelas' : htmlspecialchars($class['school_class_name']); ?> &middot; <?php echo count($students); ?> siswa</p>
             </div>
-            <div class="hero-info">
-                <h1><?php echo htmlspecialchars($class['name']); ?> <?php if($class['is_special_class']) echo '<span style="font-size: 0.8rem; background: #fbbf24; color: #78350f; padding: 4px 8px; border-radius: 6px; vertical-align: middle; margin-left: 5px; font-weight: bold;">KELAS KHUSUS</span>'; ?></h1>
-                <p><?php echo htmlspecialchars($class['subject']); ?> Â· <?php echo $class['is_special_class'] ? 'Lintas Kelas' : htmlspecialchars($class['school_class_name']); ?></p>
-                <span class="badge-count"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <?php echo count($students); ?> siswa</span>
+            <div class="page-toolbar-right">
+                <a href="kelas.php" class="btn btn-secondary btn-sm">&larr; Kembali</a>
             </div>
         </div>
 
-        <div class="vc-content">
+        <div class="page-content">
 
             <?php
 if (isset($_SESSION['flash'])) {
@@ -954,7 +654,7 @@ else: ?>
                             <div class="item-ico mat"><?php echo $ico; ?></div>
                             <div class="item-info">
                                 <div class="item-title"><?php echo htmlspecialchars($m['title']); ?></div>
-                                <div class="item-meta"><?php echo strtoupper($m['type']); ?> Â· <?php echo date('d M Y', strtotime($m['created_at'])); ?></div>
+                                <div class="item-meta"><?php echo strtoupper($m['type']); ?> &middot; <?php echo date('d M Y', strtotime($m['created_at'])); ?></div>
                             </div>
                             <div class="item-actions">
                                 <a href="<?php echo htmlspecialchars($href); ?>" target="_blank" class="btn-view">Buka</a>
@@ -1123,7 +823,7 @@ if (empty($attendance_data) && $active_meeting) {
 
                     <!-- Attendance Workspace (Always Visible) -->
                     <div class="attendance-workspace" style="margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 12px;">
                             <h4 style="margin:0; font-size: 1rem;">
                                 Data Absensi Pertemuan Ke-<?php echo $active_meeting; ?>
                                 <?php if (!in_array($active_meeting, $existing_meetings)): ?>
@@ -1131,13 +831,13 @@ if (empty($attendance_data) && $active_meeting) {
                                 <?php
 endif; ?>
                             </h4>
-                            <div style="display: flex; gap: 10px; align-items: center;">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <?php if (in_array($active_meeting, $existing_meetings)): ?>
-                                <a href="view_attendance.php?class_id=<?php echo $class_id; ?>&meeting=<?php echo $active_meeting; ?>&print=true" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border-radius: 12px; font-size: 0.95rem; font-weight: 700; text-decoration: none; box-shadow: 0 4px 12px rgba(29,78,216,0.35); transition: all 0.2s ease; border: 2px solid transparent;">&#128424;&#65039; Cetak / Download</a>
+                                <a href="view_attendance.php?class_id=<?php echo $class_id; ?>&meeting=<?php echo $active_meeting; ?>&print=true" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border-radius: 12px; font-size: 0.95rem; font-weight: 700; text-decoration: none; box-shadow: 0 4px 12px rgba(29,78,216,0.35); transition: all 0.2s ease; border: 2px solid transparent;"><svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'></polyline><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'></path><rect x='6' y='14' width='12' height='8'></rect></svg> Cetak / Download</a>
                                 <form method="POST" onsubmit="return confirm('Yakin ingin menghapus seluruh data absensi pertemuan ini? Data yang sudah diisi akan hilang.');" style="margin:0;">
                                     <input type="hidden" name="delete_attendance" value="1">
                                     <input type="hidden" name="meeting_number" value="<?php echo $active_meeting; ?>">
-                                    <button type="submit" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: 2px solid transparent; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(185,28,28,0.35); transition: all 0.2s ease;">&#128465;&#65039; Hapus Data</button>
+                                    <button type="submit" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: 2px solid transparent; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(185,28,28,0.35); transition: all 0.2s ease;"><svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 6 5 6 21 6'></polyline><path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'></path><line x1='10' y1='11' x2='10' y2='17'></line><line x1='14' y1='11' x2='14' y2='17'></line></svg> Hapus Data</button>
                                 </form>
                                 <?php
 endif; ?>
@@ -1243,7 +943,7 @@ endforeach; ?>
     </main>
 </div>
 
-<!-- â•â•â• Material Modal â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Material Modal Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="materialModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-top">
@@ -1280,7 +980,7 @@ endforeach; ?>
     </div>
 </div>
 
-<!-- â•â•â• Assignment Modal (TUGAS ONLY) â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Assignment Modal (TUGAS ONLY) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="assignmentModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-top">
@@ -1325,7 +1025,7 @@ endforeach; ?>
     </div>
 </div>
 
-<!-- â•â•â• Attendance Modal (ABSENSI ONLY) â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Attendance Modal (ABSENSI ONLY) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="attendanceModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-top">
@@ -1368,7 +1068,7 @@ endfor; ?>
     </div>
 </div>
 
-<!-- â•â•â• Edit Class Modal â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Edit Class Modal Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="editClassModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-top">
@@ -1468,7 +1168,7 @@ endforeach; ?>
     </div>
 </div>
 
-<!-- â•â•â• Modal Add Google Meet â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Modal Add Google Meet Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="meetModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-top">
@@ -1486,7 +1186,7 @@ endforeach; ?>
                     placeholder="Contoh: uhw-agti-qry atau https://meet.google.com/uhw-agti-qry"
                     required autocomplete="off" style="font-family: monospace;">
                 <small style="color:#64748b; font-size:0.78rem; margin-top:4px; display:block;">
-                    ðŸ’¡ Boleh tempel kode singkat (cth: <strong>uhw-agti-qry</strong>) atau link lengkap.
+                    &#128161; Boleh tempel kode singkat (cth: <strong>uhw-agti-qry</strong>) atau link lengkap.
                 </small>
             </div>
             <div class="form-group">
@@ -1515,7 +1215,7 @@ endforeach; ?>
     </div>
 </div>
 
-<!-- â•â•â• Statistics Modal â•â•â• -->
+<!-- Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â Statistics Modal Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â -->
 <div id="statisticsModal" class="modal-overlay">
     <div class="modal-box" style="max-width: 700px;">
         <div class="modal-top">
@@ -1908,7 +1608,7 @@ function normalizeMeetLink() {
     const codePattern = /^[a-z]{3}-[a-z]{4}-[a-z]{3}$/i;
 
     if (codePattern.test(val)) {
-        // It's a bare code â€“ make a full URL
+        // It's a bare code Ã¢â‚¬â€œ make a full URL
         val = 'https://meet.google.com/' + val.toLowerCase();
         input.value = val;
     } else if (/^meet\.google\.com\//i.test(val)) {
@@ -1917,7 +1617,7 @@ function normalizeMeetLink() {
         input.value = val;
     }
 
-    // Final sanity check â€“ must look like a valid URL now
+    // Final sanity check Ã¢â‚¬â€œ must look like a valid URL now
     try {
         const u = new URL(val);
         if (!u.hostname.includes('google.com')) {
@@ -1963,4 +1663,5 @@ window.onclick = function(event) {
 
 </body>
 </html>
+
 

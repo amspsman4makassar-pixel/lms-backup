@@ -366,7 +366,77 @@ catch (PDOException $e) {
             </div>
         </div>
     </section>
+    <?php
+    $snbp_dir = 'public/uploads/index_kelulusan_snbp/';
+    $snbp_images = [];
+    if (is_dir($snbp_dir)) {
+        $all_snbp = [];
+        $pattern = $snbp_dir . '*.{jpg,jpeg,png,gif,webp}';
+        foreach (glob($pattern, GLOB_BRACE) as $file) {
+            if (is_file($file)) $all_snbp[] = basename($file);
+        }
 
+        $order_file = $snbp_dir . 'order.json';
+        if (file_exists($order_file)) {
+            $saved = json_decode(file_get_contents($order_file), true) ?? [];
+            foreach ($saved as $f) {
+                if (in_array($f, $all_snbp)) $snbp_images[] = $f;
+            }
+            foreach ($all_snbp as $f) {
+                if (!in_array($f, $snbp_images)) $snbp_images[] = $f;
+            }
+        } else {
+            usort($all_snbp, fn($a, $b) => filemtime($snbp_dir . $b) - filemtime($snbp_dir . $a));
+            $snbp_images = $all_snbp;
+        }
+    }
+    ?>
+    <?php if (!empty($snbp_images)): ?>
+    <section id="snbp-index" class="portal-section" style="background: #fffff;">
+        <div class="section-header">
+            <h2>Selamat kepada Siswa yang Telah Lulus SNBP</h2>
+            <p>Prestasi Gemilang Siswa/Siswi SMA Negeri 4 Makassar</p>
+        </div>
+        
+        <div class="snbp-carousel-container" style="max-width: 800px; margin: 0 auto; position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div class="snbp-carousel-track" id="snbpTrack" style="display: flex; transition: transform 0.5s ease-in-out;">
+                <?php foreach ($snbp_images as $img): ?>
+                    <div class="snbp-carousel-slide" style="min-width: 100%; box-sizing: border-box;">
+                        <img src="<?php echo $snbp_dir . htmlspecialchars($img); ?>" alt="SNBP Graduate" style="width: 100%; height: auto; display: block; max-height: 500px; object-fit: contain; background: #fff;">
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            
+            <!-- Controls -->
+            <button aria-label="Previous" onclick="moveSnbp(-1)" style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">&#10094;</button>
+            <button aria-label="Next" onclick="moveSnbp(1)" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">&#10095;</button>
+        </div>
+
+        <script>
+            let currentSnbpSlide = 0;
+            const snbpTrack = document.getElementById('snbpTrack');
+            const totalSnbpSlides = <?php echo count($snbp_images); ?>;
+            
+            function moveSnbp(direction) {
+                currentSnbpSlide = (currentSnbpSlide + direction + totalSnbpSlides) % totalSnbpSlides;
+                updateSnbpCarousel();
+            }
+            
+            function updateSnbpCarousel() {
+                if (snbpTrack) {
+                    snbpTrack.style.transform = `translateX(-${currentSnbpSlide * 100}%)`;
+                }
+            }
+
+            // Auto slide every 4 seconds
+            if (totalSnbpSlides > 1) {
+                setInterval(() => {
+                    moveSnbp(1);
+                }, 4000);
+            }
+        </script>
+    </section>
+    <?php endif; ?>
     <section id="news" class="portal-section">
         <div class="section-header">
             <h2>Kabar Sekolah</h2>

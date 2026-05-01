@@ -1,7 +1,7 @@
 <?php
 // config/database.php
 
-$host = '192.168.1.95';
+$host = '192.168.10.101';
 $db_name = 'sman4_lms';
 $username = 'lmsuser';
 $password = 'passwordkamu'; // Default Laragon password is empty

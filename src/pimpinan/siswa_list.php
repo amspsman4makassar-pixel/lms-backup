@@ -45,29 +45,15 @@ $siswaList = $stmt->fetchAll();
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Direktori Siswa - Pimpinan</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .role-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
-        /* Layout hero; warna dari html[data-lms-role] di style.css */
-        .main-content > .dashboard-hero {
-            margin: -2rem -2rem 2rem -2rem !important;
-            width: calc(100% + 4rem) !important;
-            padding: 2.5rem 3rem !important;
-            border-radius: 0 0 40px 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .main-content {
-            padding: 2rem;
-        }
-        .table-container { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 1rem; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        td { padding: 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+
         .user-info { display: flex; align-items: center; gap: 1rem; }
         .user-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
@@ -79,18 +65,19 @@ $siswaList = $stmt->fetchAll();
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <!-- Unified Hero Header -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Direktori Siswa</h1>
-                <p style="color: rgba(255,255,255,0.8);">Pantau data seluruh siswa di sekolah berdasarkan kelas.</p>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; line-height:1; margin-right: 6px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    Direktori Siswa
+                </h1>
+                <p class="page-subtitle">Pantau data seluruh siswa di sekolah berdasarkan kelas.</p>
             </div>
-            <!-- Decorative circle -->
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         </div>
         
-        <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-            <div style="margin-bottom: 1.5rem;">
+        <div class="page-content">
+            <div class="page-section">
                 <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <input type="text" name="search" placeholder="Cari nama, NIS, username..." value="<?php echo htmlspecialchars($search_query); ?>" style="flex: 2; min-width: 200px; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit;">
                     
@@ -113,8 +100,8 @@ endif; ?>
                 </form>
             </div>
 
-            <div class="table-container">
-                <table>
+            <div class="page-table-wrap">
+                <table class="page-table">
                     <thead>
                         <tr>
                             <th>Siswa</th>
@@ -192,10 +179,12 @@ endif; ?>
             <div style="margin-top: 1rem; font-size: 0.85rem; color: #64748b; text-align: right;">
                 Total Siswa: <?php echo count($siswaList); ?>
             </div>
+            </div>
         </div>
     </main>
 </div>
 
 </body>
 </html>
+
 

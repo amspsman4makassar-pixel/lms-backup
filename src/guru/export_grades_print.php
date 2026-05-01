@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // src/guru/export_grades_print.php
 // Printable / Save-as-PDF view for submission grades.
 
@@ -51,8 +51,9 @@ $graded_count = count($grade_values);
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>Rekap Nilai — <?php echo htmlspecialchars($assignment['title']); ?></title>
+    <title>Rekap Nilai &mdash; <?php echo htmlspecialchars($assignment['title']); ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,7 +66,7 @@ $graded_count = count($grade_values);
             padding: 20px;
         }
 
-        /* ── Print controls (hidden when printing) ── */
+        /* â”€â”€ Print controls (hidden when printing) â”€â”€ */
         .print-controls {
             display: flex;
             gap: 10px;
@@ -102,7 +103,7 @@ $graded_count = count($grade_values);
             font-family: inherit;
         }
 
-        /* ── Document ── */
+        /* â”€â”€ Document â”€â”€ */
         .document {
             background: #fff;
             max-width: 760px;
@@ -112,7 +113,7 @@ $graded_count = count($grade_values);
             box-shadow: 0 2px 16px rgba(0,0,0,0.06);
         }
 
-        /* ── Header ── */
+        /* â”€â”€ Header â”€â”€ */
         .doc-header {
             border-bottom: 2px solid #4f46e5;
             padding-bottom: 16px;
@@ -137,7 +138,7 @@ $graded_count = count($grade_values);
             margin-top: 2px;
         }
 
-        /* ── Meta info grid ── */
+        /* â”€â”€ Meta info grid â”€â”€ */
         .meta-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -152,7 +153,7 @@ $graded_count = count($grade_values);
         .meta-label { color: #64748b; min-width: 80px; flex-shrink: 0; }
         .meta-value { color: #1e293b; font-weight: 600; }
 
-        /* ── Stats row ── */
+        /* â”€â”€ Stats row â”€â”€ */
         .stats-row {
             display: flex;
             gap: 12px;
@@ -174,7 +175,7 @@ $graded_count = count($grade_values);
         .stat-box.amber .stat-num { color: #d97706; }
         .stat-box.amber .stat-lbl { color: #b45309; }
 
-        /* ── Table ── */
+        /* â”€â”€ Table â”€â”€ */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -227,7 +228,7 @@ $graded_count = count($grade_values);
             vertical-align: middle;
         }
 
-        /* ── Footer ── */
+        /* â”€â”€ Footer â”€â”€ */
         .doc-footer {
             margin-top: 28px;
             padding-top: 14px;
@@ -251,7 +252,7 @@ $graded_count = count($grade_values);
             margin: 40px auto 6px;
         }
 
-        /* ── Print styles ── */
+        /* â”€â”€ Print styles â”€â”€ */
         @media print {
             body { background: #fff; padding: 0; }
             .print-controls { display: none !important; }
@@ -274,7 +275,7 @@ $graded_count = count($grade_values);
 <!-- Print / Close buttons -->
 <div class="print-controls">
     <a href="view_submissions.php?assignment_id=<?php echo $assignment_id; ?>" class="btn-close">
-        ✕ Tutup
+        &times; Tutup
     </a>
     <button onclick="window.print()" class="btn-print">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -412,3 +413,4 @@ window.addEventListener('load', function() {
 
 </body>
 </html>
+

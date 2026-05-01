@@ -150,39 +150,39 @@ $news_items = $pdo->query("
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kelola Berita - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="admin-full-layout">
+<body>
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
         <!-- Unified Hero Header -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;">Kelola Berita</h1>
-                <p style="color: rgba(255,255,255,0.8);">Bagikan informasi terbaru untuk seluruh warga sekolah.</p>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kelola Berita</h1>
+                <p class="page-subtitle">Buat, edit, dan publikasikan berita sekolah</p>
             </div>
-            <!-- Decorative circle -->
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; blur: 20px;"></div>
         </div>
-        
-        <div class="content-overlap" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
-            <!-- Form Card -->
-            <div class="card" style="height: fit-content;">
-                <h3><?php echo $edit_mode ? "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'/></svg> Edit Berita" : "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'/></svg> Tulis Berita Baru"; ?></h3>
-                <?php
-if (isset($_SESSION['flash'])) {
-    $flash = $_SESSION['flash'];
-    $cls = ($flash['type'] == 'error') ? 'badge-danger' : 'badge-success';
-    echo "<div class='badge $cls' style='display:block; padding:10px; margin-bottom:15px; text-align:center;'>" . htmlspecialchars($flash['message']) . "</div>";
-    unset($_SESSION['flash']);
-}
-?>
+        <div class="page-content">
+            <div class="two-col-layout-equal">
+            <!-- Form Panel -->
+            <div class="page-section">
+                <div class="section-title"><?= $edit_mode ? 'Edit Berita' : 'Tulis Berita Baru' ?></div>
+
+                <?php if (isset($_SESSION['flash'])): $flash = $_SESSION['flash']; unset($_SESSION['flash']); ?>
+                    <div class="<?= $flash['type'] === 'error' ? 'flash-error' : 'flash-success' ?>">
+                        <?= $flash['type'] === 'error'
+                            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>'
+                            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'; ?>
+                        <?= htmlspecialchars($flash['message']) ?>
+                    </div>
+                <?php endif; ?>
                 
                 <form method="POST" enctype="multipart/form-data">
                     <?php if ($edit_mode): ?>
@@ -230,19 +230,24 @@ endif; ?>
                         <small style="color: grey; display: block; margin-top: 5px;">Tekan Ctrl (Windows) atau Command (Mac) untuk memilih banyak gambar.</small>
                     </div>
                     
-                    <button type="submit" class="btn" style="width: 100%;"><?php echo $edit_mode ? "Simpan Perubahan" : "Terbitkan Berita"; ?></button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;"><?= $edit_mode ? 'Simpan Perubahan' : 'Terbitkan Berita' ?></button>
                     <?php if ($edit_mode): ?>
-                        <a href="manage_news.php" class="btn btn-secondary" style="display: block; width: 100%; text-align: center; margin-top: 10px;">Batal Edit</a>
-                    <?php
-endif; ?>
+                        <a href="manage_news.php" class="btn btn-ghost" style="display:block;width:100%;text-align:center;margin-top:8px;">Batal Edit</a>
+                    <?php endif; ?>
                 </form>
             </div>
-            
-            <!-- List Card -->
-            <div class="card">
-                <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg> Daftar Berita</h3>
-                <div class="table-container">
-                    <table>
+
+            <!-- List Panel -->
+            <div class="page-section">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                        Daftar Berita
+                    </h3>
+                    <span style="background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;"><?= count($news_items) ?> artikel</span>
+                </div>
+                <div class="page-table-wrap">
+                    <table class="page-table">
                         <thead>
                             <tr>
                                 <th>Gambar</th>
@@ -276,10 +281,10 @@ endif; ?>
                                     <strong style="display: block; font-size: 1rem; color: var(--secondary); margin-bottom: 4px;"><?php echo htmlspecialchars($item['title']); ?></strong>
                                     <span style="font-size: 0.85rem; color: var(--text-muted);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <?php echo date('d M Y, H:i', strtotime($item['created_at'])); ?></span>
                                 </td>
-                                <td style="text-align: right;">
-                                    <div style="display: flex; gap: 5px; justify-content: flex-end;">
-                                        <a href="manage_news.php?edit=<?php echo $item['id']; ?>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; line-height:1;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Edit</a>
-                                        <a href="manage_news.php?delete=<?php echo $item['id']; ?>" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="return confirm('Yakin ingin menghapus berita ini?')">Hapus</a>
+                                <td style="text-align:right;">
+                                    <div style="display:flex;gap:5px;justify-content:flex-end;">
+                                        <a href="manage_news.php?edit=<?= $item['id'] ?>" class="sub-btn">Edit</a>
+                                        <a href="manage_news.php?delete=<?= $item['id'] ?>" class="sub-btn danger" onclick="return confirm('Yakin hapus berita ini?')">Hapus</a>
                                     </div>
                                 </td>
                             </tr>
@@ -289,10 +294,12 @@ endforeach; ?>
                     </table>
                 </div>
             </div>
-        </div>
+            </div><!-- /.two-col-layout-equal -->
+        </div><!-- /.content-overlap -->
     </main>
 </div>
 
 </body>
 </html>
+
 

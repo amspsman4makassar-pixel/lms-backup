@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/guru/kelas.php
 session_start();
 require_once '../../config/database.php';
@@ -58,6 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_class'])) {
         catch (PDOException $e) {
             $_SESSION['flash'] = ['type' => 'error', 'message' => "Gagal membuat kelas: " . $e->getMessage()];
         }
+    }
+    header("Location: kelas.php");
+    exit;
+}
+
+// Handle Delete Class
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_class'])) {
+    $class_id = intval($_POST['delete_class']);
+    try {
+        $stmt = $pdo->prepare("DELETE FROM teacher_classes WHERE id = ? AND teacher_id = ?");
+        $stmt->execute([$class_id, $teacher_id]);
+        $_SESSION['flash'] = ['type' => 'success', 'message' => "Kelas berhasil dihapus!"];
+    } catch (PDOException $e) {
+        $_SESSION['flash'] = ['type' => 'error', 'message' => "Gagal menghapus kelas karena ada data terkait."];
     }
     header("Location: kelas.php");
     exit;
@@ -154,193 +168,11 @@ function getSubjectStyle($subjectName)
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kelas Saya - Guru</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .grade-section {
-            margin-bottom: 40px;
-        }
-        .grade-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
-        }
-        .grade-badge {
-            background: #1e293b;
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-        .class-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-        }
-        .class-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            display: flex;
-            flex-direction: column;
-            text-decoration: none;
-            color: inherit;
-            position: relative;
-        }
-        .class-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-        .class-header {
-            padding: 24px;
-            position: relative;
-            color: white;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            /* justify-content: flex-end; Removed to allow natural stacking */
-        }
-        /* Pattern overlay for header */
-        .class-header::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px);
-            background-size: 12px 12px;
-            opacity: 0.4;
-        }
-        .class-header h3 {
-            margin: 0;
-            font-size: 1.35rem;
-            font-weight: 700;
-            position: relative;
-            z-index: 2;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            line-height: 1.3;
-        }
-        .class-header p {
-            margin: 6px 0 0;
-            opacity: 0.95;
-            font-size: 0.95rem;
-            position: relative;
-            z-index: 2;
-            font-weight: 500;
-        }
-        .subject-badge {
-            /* Changed from absolute to relative flex item to prevent overlap */
-            align-self: flex-end;
-            margin-bottom: auto; /* Pushes content below it to the bottom */
-            
-            background: rgba(255,255,255,0.25);
-            backdrop-filter: blur(4px);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.3);
-            z-index: 2;
-        }
-        .class-body {
-            padding: 20px 24px;
-            flex-grow: 1;
-            background: #fff;
-        }
-        .class-info-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-        .class-info-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            color: #475569;
-        }
-        /* Modal Styles */
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0;
-            top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-        }
-        .modal-content {
-            background-color: #fff;
-            margin: 5% auto; 
-            padding: 2.5rem;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-        @keyframes modalSlideIn {
-            from {transform: translateY(20px) scale(0.95); opacity: 0;}
-            to {transform: translateY(0) scale(1); opacity: 1;}
-        }
-        .close {
-            position: absolute;
-            right: 24px;
-            top: 24px;
-            width: 32px;
-            height: 32px;
-            background: #f1f5f9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 20px;
-            line-height: 1;
-        }
-        .close:hover { background: #e2e8f0; color: #1e293b; }
 
-        /* Form styling */
-        .form-group label {
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 8px;
-            display: block;
-        }
-        .form-group input, .form-group select {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-    </style>
 </head>
 <body class="admin-full-layout">
 
@@ -348,33 +180,18 @@ function getSubjectStyle($subjectName)
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <!-- Dashboard Hero -->
-        <div class="dashboard-hero">
-            <div class="dashboard-container hero-top-container">
-                <div class="hero-text-container">
-                    <h1 style="color: white; margin-bottom: 0.5rem;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-                        Kelas Saya
-                    </h1>
-                    <p style="color: rgba(255,255,255,0.8);">Kelola kelas dan materi pembelajaran Anda.</p>
-                </div>
-                <div class="hero-actions-container">
-                    <div class="hero-search-box">
-                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; pointer-events: none;"><svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg></span>
-                        <input type="text" id="classSearchInput" class="hero-search-input" placeholder="Cari kelas atau mapel...">
-                    </div>
-                    <button onclick="document.getElementById('addClassModal').style.display='block'" class="btn btn-hero-action">
-                        + Buat Kelas Baru
-                    </button>
-                </div>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kelas Saya</h1>
+                <p class="page-subtitle">Kelola kelas, materi, dan tugas untuk setiap mata pelajaran</p>
             </div>
-            
-            <div style="position: absolute; right: -50px; top: -50px; width: 250px; height: 250px; background: rgba(255,255,255,0.05); border-radius: 50%; pointer-events: none;"></div>
-            <div style="position: absolute; right: 100px; bottom: -80px; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; pointer-events: none;"></div>
+            <div class="page-toolbar-right">
+                <input type="text" id="classSearchInput" class="filter-input" placeholder="Cari kelas atau mapel..." style="width:220px;">
+                <button onclick="document.getElementById('addClassModal').style.display='block'" class="btn btn-sm">+ Buat Kelas Baru</button>
+            </div>
         </div>
-
-        <div class="content-overlap">
-            <div class="dashboard-container">
+        <div class="page-content">
+        <div class="page-section">
 
         <?php
 if (isset($_SESSION['flash'])) {
@@ -398,7 +215,7 @@ if (isset($_SESSION['flash'])) {
 
         <?php if (empty($all_my_classes)): ?>
             <div style="text-align: center; padding: 5rem 2rem; background: white; border-radius: 24px; border: 2px dashed #cbd5e1; max-width: 600px; margin: 40px auto;">
-                <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.8;"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></div>
+                <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.8; display: flex; justify-content: center;"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></div>
                 <h3 style="color: #1e293b; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">Belum ada kelas aktif</h3>
                 <p style="color: #64748b; margin-bottom: 2rem; font-size: 1rem; line-height: 1.6;">Selamat datang! Mulai perjalanan mengajar Anda dengan membuat kelas pertama. Tambahkan materi dan tugas dengan mudah.</p>
                 <button onclick="document.getElementById('addClassModal').style.display='block'" class="btn btn-secondary">
@@ -421,32 +238,55 @@ else: ?>
                             <span class="grade-badge"><?php echo $key === 'Others' ? 'Lainnya' : $key; ?></span>
                             <?php echo $label; ?>
                         </div>
-                        <div class="class-grid">
+                        <div class="class-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
                             <?php foreach ($grouped_classes[$key] as $class):
-                $bgStyle = getSubjectStyle($class['subject']);
-?>
-                                <a href="view_class.php?id=<?php echo $class['id']; ?>" class="class-card" 
-                                   data-name="<?php echo strtolower(htmlspecialchars($class['name'])); ?>"
-                                   data-subject="<?php echo strtolower(htmlspecialchars($class['subject'])); ?>">
-                                    <div class="class-header" style="background: <?php echo $bgStyle; ?>;">
-                                        <div class="subject-badge"><?php echo htmlspecialchars($class['subject']); ?></div>
-                                        <h3><?php echo htmlspecialchars($class['name']); ?> <?php if($class['is_special_class']) echo '<span style="font-size: 0.8rem; background: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;">Kelas Khusus</span>'; ?></h3>
-                                        <p><?php echo $class['is_special_class'] ? 'Lintas Kelas (Siswa ditambahkan manual)' : htmlspecialchars($class['school_class_name']); ?></p>
+                                $bgStyle = getSubjectStyle($class['subject']);
+                            ?>
+                            <div class="class-card class-row-search" 
+                                data-name="<?php echo strtolower(htmlspecialchars($class['name'])); ?>"
+                                data-subject="<?php echo strtolower(htmlspecialchars($class['subject'])); ?>"
+                                style="background: #fff; border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div>
+                                        <span class="table-subject-badge" style="background: <?php echo $bgStyle; ?>; margin-bottom: 8px;">
+                                            <?php echo htmlspecialchars($class['subject']); ?>
+                                        </span>
+                                        <div style="font-weight: 800; color: #1e293b; font-size: 1.25rem; margin-top: 4px;"><?php echo htmlspecialchars($class['name']); ?></div>
                                     </div>
-                                    <div class="class-body">
-                                        <div class="class-info-row">
-                                            <div class="class-info-icon"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-                                            <span style="font-weight: 600; color: #334155;"><?php echo $class['is_special_class'] ? $class['special_student_count'] : $class['regular_student_count']; ?></span> 
-                                            <span style="color: #94a3b8;">Siswa Terdaftar</span>
-                                        </div>
-                                        <div class="class-info-row">
-                                            <div class="class-info-icon"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-                                            <span style="font-size: 0.85rem;">Dibuat <?php echo date('d M Y', strtotime($class['created_at'])); ?></span>
-                                        </div>
+                                    <?php if($class['is_special_class']): ?>
+                                        <span style="font-size: 0.7rem; background: #fbbf24; color: #78350f; padding: 3px 8px; border-radius: 6px; font-weight: 700;">KHUSUS</span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div style="color: #64748b; font-size: 0.9rem;">
+                                    <?php echo $class['is_special_class'] ? 'Lintas Kelas' : htmlspecialchars($class['school_class_name']); ?>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; font-size: 0.85rem;">
+                                    <div>
+                                        <span style="font-weight: 700; color: #334155;">
+                                            <?php echo $class['is_special_class'] ? $class['special_student_count'] : $class['regular_student_count']; ?>
+                                        </span> Siswa
                                     </div>
-                                </a>
-                            <?php
-            endforeach; ?>
+                                    <div style="color: #94a3b8;">
+                                        <?php echo date('d M Y', strtotime($class['created_at'])); ?>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="view_class.php?id=<?php echo $class['id']; ?>" class="btn btn-primary" style="flex: 1; text-align: center; font-weight: 700; padding: 8px 16px; border-radius: 8px;">
+                                        Masuk Kelas &rarr;
+                                    </a>
+                                    <form method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kelas ini? Semua materi dan tugas di dalamnya mungkin akan ikut terhapus.');" style="margin: 0;">
+                                        <input type="hidden" name="delete_class" value="<?php echo $class['id']; ?>">
+                                        <button type="submit" class="btn" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 8px 12px; border-radius: 8px; cursor: pointer;" title="Hapus Kelas">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 <?php
@@ -463,8 +303,9 @@ else: ?>
 
         <?php
 endif; ?>
-            </div> <!-- End Dashboard Container -->
-        </div><!-- end content-overlap -->
+            </div><!-- end page-section -->
+        </div><!-- end page-content -->
+
 
         <!-- Add Class Modal -->
         <div id="addClassModal" class="modal">
@@ -591,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let hasGlobalResults = false;
 
         gradeSections.forEach(section => {
-            const cards = section.querySelectorAll('.class-card');
+            const cards = section.querySelectorAll('.class-row-search');
             let hasSectionResults = false;
 
             cards.forEach(card => {
@@ -599,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const subject = card.dataset.subject || '';
                 
                 if (name.includes(query) || subject.includes(query)) {
-                    card.style.display = 'flex'; // Restore display
+                    card.style.display = 'table-row'; // Restore display
                     hasSectionResults = true;
                     hasGlobalResults = true;
                 } else {
@@ -638,5 +479,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
+
 
 

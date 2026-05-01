@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require_once "../../config/database.php";
 
@@ -102,9 +102,6 @@ function formatTanggal($date, $hari_array, $bulan_array) {
         .btn-meet:hover { background: #059669; }
         .btn-meet.disabled { background: #cbd5e1; color: #64748b; pointer-events: none; }
         .empty-state { text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; border: 1px dashed #cbd5e1; color: #64748b; }
-        .page-header { margin-bottom: 1.5rem; }
-        .page-header h1 { font-size: 1.6rem; color: #1e293b; margin-bottom: 0.3rem; }
-        .page-header p { color: #64748b; font-size: 0.9rem; }
         @media (max-width: 768px) { .pm-layout { flex-direction: column-reverse; } .pm-sidebar { width: 100%; position: static; } }
     </style>
 </head>
@@ -112,11 +109,15 @@ function formatTanggal($date, $hari_array, $bulan_array) {
 <div class="app-container">
     <?php include "../templates/sidebar.php"; ?>
     <main class="main-content">
-        <div class="page-header">
-            <h1>Pemantauan Google Meet</h1>
-            <p>Pilih tanggal di sebelah kanan untuk melihat meet yang dijadwalkan.</p>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Pemantauan Google Meet</h1>
+                <p class="page-subtitle">Pilih tanggal di sebelah kanan untuk melihat meet yang dijadwalkan.</p>
+            </div>
         </div>
 
+        <div class="page-content">
         <?php if (empty($grouped_meets)): ?>
             <div class="empty-state">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:1rem;color:#94a3b8;"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1zM0 5h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7c0-1.1.9-2 2-2z"/></svg>
@@ -206,6 +207,7 @@ function formatTanggal($date, $hari_array, $bulan_array) {
             </div>
         </div>
         <?php endif; ?>
+        </div>
     </main>
 </div>
 </body>

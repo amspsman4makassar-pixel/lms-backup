@@ -12,8 +12,8 @@ $teacher_id = $_SESSION['user_id'];
 $success = "";
 $error = "";
 
-// ─── Handle Add Assignment (Quick Action) ───
-// ─── Handle Add Assignment (Quick Action) ───
+// â”€â”€â”€ Handle Add Assignment (Quick Action) â”€â”€â”€
+// â”€â”€â”€ Handle Add Assignment (Quick Action) â”€â”€â”€
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quick_add_assignment'])) {
     $target_class_id = $_POST['class_id']; // This is teacher_classes.id
     $title = trim($_POST['a_title']);
@@ -54,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quick_add_assignment'
     exit;
 }
 
-// ─── Handle Add Material (Quick Action) ───
-// ─── Handle Add Material (Quick Action) ───
+// â”€â”€â”€ Handle Add Material (Quick Action) â”€â”€â”€
+// â”€â”€â”€ Handle Add Material (Quick Action) â”€â”€â”€
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quick_add_material'])) {
     $target_class_id = $_POST['class_id'];
     $title = trim($_POST['m_title']);
@@ -155,7 +155,7 @@ elseif ($hour < 18)
 else
     $greeting = "Selamat Malam";
 
-// Determine assignment with most ungraded (or just the oldest one) — exclude attendance
+// Determine assignment with most ungraded (or just the oldest one) &mdash; exclude attendance
 $stmt = $pdo->prepare("
     SELECT a.id, COUNT(*) as count 
     FROM submissions s 
@@ -226,546 +226,11 @@ $dateStr = $dayName . ', ' . date('d') . ' ' . $monthName . ' ' . date('Y');
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Dashboard Guru</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* * { font-family: 'Inter', system-ui, -apple-system, sans-serif; } */
-        .main-content {
-            max-width: 100% !important;
-            background: #f5f7fb !important;
 
-            padding: 0 !important;
-        }
-
-        /* ─── Hero guru: biru (selaras modul global, beda dari teal siswa) ─── */
-        .db-hero {
-            position: relative;
-            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #3b82f6 100%);
-            padding: 2.5rem 3rem 5.5rem 5rem;
-            overflow: hidden;
-        }
-        .db-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            pointer-events: none;
-        }
-        .db-hero::after {
-            content: '';
-            position: absolute;
-            width: 500px; height: 500px;
-            top: -250px; right: -100px;
-            background: radial-gradient(circle, rgba(147, 197, 253, 0.35) 0%, transparent 60%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .hero-inner {
-            position: relative; z-index: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .hero-inner h1 {
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.35rem;
-        }
-        .hero-sub { color: rgba(255,255,255,0.55); font-size: 0.88rem; }
-        .hero-date {
-            color: rgba(255,255,255,0.45);
-            font-size: 0.85rem;
-            text-align: right;
-            font-weight: 500;
-        }
-
-        /* ─── Content Area ─── */
-        .db-content {
-            position: relative;
-            margin-top: -3rem;
-            padding: 0 3rem 3rem;
-            z-index: 10;
-        }
-
-        /* ─── Stats ─── */
-        .db-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .db-stat {
-            background: #fff;
-            border-radius: 16px;
-            padding: 22px 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            animation: fade-up 0.4s ease-out both;
-        }
-        .db-stat:nth-child(1) { animation-delay: 0.05s; }
-        .db-stat:nth-child(2) { animation-delay: 0.1s; }
-        .db-stat:nth-child(3) { animation-delay: 0.15s; }
-        .db-stat:nth-child(4) { animation-delay: 0.2s; }
-        @keyframes fade-up {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .db-stat::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 100%; height: 3px;
-        }
-        .db-stat.c-blue::after   { background: linear-gradient(90deg, #3b82f6, #93c5fd); }
-        .db-stat.c-violet::after { background: linear-gradient(90deg, #7c3aed, #c4b5fd); }
-        .db-stat.c-amber::after  { background: linear-gradient(90deg, #f59e0b, #fde68a); }
-        .db-stat.c-green::after  { background: linear-gradient(90deg, #10b981, #6ee7b7); }
-        .db-stat:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-        }
-        .db-stat .num {
-            font-size: 2.2rem;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 6px;
-            letter-spacing: -0.03em;
-        }
-        .db-stat.c-blue .num   { color: #2563eb; }
-        .db-stat.c-violet .num { color: #7c3aed; }
-        .db-stat.c-amber .num  { color: #d97706; }
-        .db-stat.c-green .num  { color: #059669; }
-        .db-stat .lbl {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-        }
-
-        /* ─── Alert ─── */
-        .db-alert {
-            background: linear-gradient(135deg, #fffbeb, #fef3c7);
-            border: 1px solid #fde68a;
-            border-radius: 14px;
-            padding: 14px 22px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 20px;
-            font-size: 0.88rem;
-            color: #78350f;
-            animation: fade-up 0.4s ease-out 0.25s both;
-        }
-        .db-alert strong { color: #92400e; }
-        .db-alert a {
-            margin-left: auto;
-            color: #92400e;
-            font-weight: 700;
-            text-decoration: none;
-            background: rgba(146,64,14,0.08);
-            padding: 7px 18px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            transition: background 0.15s;
-            white-space: nowrap;
-        }
-        .db-alert a:hover { background: rgba(146,64,14,0.14); }
-
-        /* ─── Grid ─── */
-        .db-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            animation: fade-up 0.4s ease-out 0.3s both;
-        }
-
-        /* ─── Panel ─── */
-        .db-panel {
-            background: #fff;
-            border-radius: 18px;
-            padding: 26px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.04);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .db-panel h3 {
-            font-size: 0.82rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-            margin-bottom: 18px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        /* ─── Quick Actions ─── */
-        .qa-list { display: flex; flex-direction: column; gap: 8px; }
-        .qa-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid #eef2f7;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-        .qa-item:hover {
-            background: #eef2ff;
-            border-color: #c7d2fe;
-            transform: translateX(4px);
-            box-shadow: 0 2px 12px rgba(79,70,229,0.06);
-        }
-        .qa-ico {
-            width: 42px; height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.15rem;
-            flex-shrink: 0;
-        }
-        .qa-item:nth-child(1) .qa-ico { background: #dbeafe; }
-        .qa-item:nth-child(2) .qa-ico { background: #ede9fe; }
-        .qa-item:nth-child(3) .qa-ico { background: #fef3c7; }
-        .qa-item:nth-child(4) .qa-ico { background: #d1fae5; }
-        .qa-title {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        .qa-desc {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 2px;
-        }
-        .qa-arrow {
-            margin-left: auto;
-            color: #cbd5e1;
-            font-size: 1.2rem;
-            transition: all 0.2s;
-        }
-        .qa-item:hover .qa-arrow { color: #6366f1; transform: translateX(3px); }
-
-        /* ─── Class List ─── */
-        .cls-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 13px 0;
-            border-bottom: 1px solid #f1f5f9;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.2s;
-        }
-        .cls-row:last-child { border-bottom: none; }
-        .cls-row:hover { padding-left: 6px; }
-        .cls-av {
-            width: 42px; height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.8rem;
-            color: #fff;
-            flex-shrink: 0;
-        }
-        .cls-name {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: #1e293b;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .cls-subj {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 2px;
-        }
-        .cls-badge {
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: #64748b;
-            background: #f1f5f9;
-            padding: 5px 12px;
-            border-radius: 20px;
-            white-space: nowrap;
-        }
-        .cls-empty {
-            text-align: center;
-            padding: 2.5rem 1rem;
-            color: #94a3b8;
-        }
-        .cls-empty a {
-            color: #6366f1;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .view-all-link {
-            display: block;
-            text-align: center;
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid #f1f5f9;
-            color: #6366f1;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-decoration: none;
-        }
-        .view-all-link:hover { color: #4338ca; }
-
-        /* Modal Styles */
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0;
-            top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-        }
-        .modal-content {
-            background-color: #fff;
-            margin: 5% auto; 
-            padding: 2.5rem;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-        @keyframes modalSlideIn {
-            from {transform: translateY(20px) scale(0.95); opacity: 0;}
-            to {transform: translateY(0) scale(1); opacity: 1;}
-        }
-        .close {
-            position: absolute;
-            right: 24px;
-            top: 24px;
-            width: 32px;
-            height: 32px;
-            background: #f1f5f9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 20px;
-            line-height: 1;
-        }
-        .close:hover { background: #e2e8f0; color: #1e293b; }
-
-        /* Form styling */
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 8px;
-            display: block;
-            font-size: 0.9rem;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            background: #fff;
-            color: #1e293b;
-            font-family: inherit;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            outline: none;
-        }
-        .btn {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-            display: block;
-            text-align: center;
-        }
-        .btn:hover { background: #4338ca; transform: translateY(-2px); }
-
-        @media (max-width: 900px) {
-            .db-stats { grid-template-columns: repeat(2, 1fr); }
-            .db-grid { grid-template-columns: 1fr; }
-            .db-hero { padding: 2rem 1.5rem 5rem; }
-            .db-content { padding: 0 1.5rem 2rem; }
-        }
-
-        @media (max-width: 768px) {
-            .db-hero {
-                padding: 1.2rem 1rem 3.4rem;
-                border-bottom-right-radius: 24px;
-            }
-            .hero-inner {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.55rem;
-            }
-            .hero-inner h1 {
-                font-size: 1.15rem;
-                line-height: 1.35;
-                margin-bottom: 0.2rem;
-            }
-            .hero-sub {
-                font-size: 0.78rem;
-            }
-            .hero-date {
-                text-align: left;
-                font-size: 0.72rem;
-                opacity: 0.9;
-            }
-
-            .db-content {
-                margin-top: -2rem;
-                padding: 0 0.85rem 1rem;
-            }
-            .db-stats {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 0.65rem;
-                margin-bottom: 0.8rem;
-            }
-            .db-stat {
-                border-radius: 12px;
-                padding: 0.85rem 0.75rem;
-            }
-            .db-stat .num {
-                font-size: 1.35rem;
-                margin-bottom: 0.3rem;
-            }
-            .db-stat .lbl {
-                font-size: 0.62rem;
-                letter-spacing: 0.05em;
-            }
-
-            .db-alert {
-                padding: 0.7rem 0.8rem;
-                border-radius: 10px;
-                gap: 0.6rem;
-                font-size: 0.74rem;
-                align-items: flex-start;
-                flex-wrap: wrap;
-            }
-            .db-alert a {
-                margin-left: 0;
-                width: 100%;
-                text-align: center;
-                font-size: 0.72rem;
-                padding: 0.5rem 0.7rem;
-            }
-
-            .db-grid {
-                gap: 0.75rem;
-            }
-            .db-panel {
-                border-radius: 12px;
-                padding: 0.85rem;
-            }
-            .db-panel h3 {
-                font-size: 0.68rem;
-                margin-bottom: 0.65rem;
-                padding-bottom: 0.55rem;
-            }
-
-            .qa-item {
-                gap: 0.65rem;
-                padding: 0.62rem;
-                border-radius: 10px;
-            }
-            .qa-ico {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                font-size: 0.9rem;
-            }
-            .qa-title {
-                font-size: 0.76rem;
-            }
-            .qa-desc {
-                font-size: 0.66rem;
-                line-height: 1.3;
-            }
-            .qa-arrow {
-                font-size: 1rem;
-            }
-
-            .cls-row {
-                gap: 0.55rem;
-                padding: 0.55rem 0;
-                align-items: flex-start;
-            }
-            .cls-av {
-                width: 30px;
-                height: 30px;
-                border-radius: 8px;
-                font-size: 0.63rem;
-            }
-            .cls-name {
-                font-size: 0.72rem;
-                white-space: normal;
-                line-height: 1.3;
-            }
-            .cls-subj {
-                font-size: 0.63rem;
-            }
-            .cls-badge {
-                font-size: 0.58rem;
-                padding: 0.25rem 0.45rem;
-            }
-
-            .modal-content {
-                width: calc(100% - 1rem);
-                margin: 0.5rem auto;
-                max-height: calc(100dvh - 1rem);
-                overflow-y: auto;
-                border-radius: 14px;
-                padding: 1rem;
-            }
-            .close {
-                right: 12px;
-                top: 12px;
-                width: 28px;
-                height: 28px;
-            }
-            .form-group {
-                margin-bottom: 0.75rem;
-            }
-            .form-group input, .form-group select, .form-group textarea {
-                padding: 10px 11px;
-                font-size: 16px;
-            }
-        }
-    </style>
 </head>
 <body>
 
@@ -776,21 +241,13 @@ $dateStr = $dayName . ', ' . date('d') . ' ' . $monthName . ' ' . date('Y');
 
         <!-- Hero -->
         <!-- Hero -->
-        <div class="db-hero">
-            <div class="hero-inner">
-                <div>
-                    <h1><?php echo $greeting; ?>, <?php echo $sapaan . ' ' . htmlspecialchars($_SESSION['full_name']); ?>!</h1>
-                    <?php if (!empty($_SESSION['nip'])): ?>
-                        <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 4px; font-weight: 500;">NIP: <?php echo htmlspecialchars($_SESSION['nip']); ?></div>
-                    <?php
-endif; ?>
-                    <p class="hero-sub">Ringkasan aktivitas mengajar Anda hari ini</p>
-                </div>
-                <div class="hero-date"><?php echo $dateStr; ?></div>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Dashboard Guru</h1>
+                <p class="page-subtitle">Ringkasan aktivitas mengajar Anda</p>
             </div>
         </div>
-
-        <div class="db-content">
+        <div class="page-content">
             <?php
 if (isset($_SESSION['flash'])) {
     $flash = $_SESSION['flash'];
@@ -835,10 +292,10 @@ if (isset($_SESSION['flash'])) {
                 <span style="font-size:1.2rem;"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                 <span>Ada <strong><?php echo $ungraded; ?> tugas</strong> siswa yang belum dinilai.</span>
                 <?php if ($priority_assignment_id): ?>
-                    <a href="view_submissions.php?assignment_id=<?php echo $priority_assignment_id; ?>">Nilai Sekarang →</a>
+                    <a href="view_submissions.php?assignment_id=<?php echo $priority_assignment_id; ?>">Nilai Sekarang &rarr;</a>
                 <?php
     else: ?>
-                    <a href="kelas.php">Lihat Kelas →</a>
+                    <a href="kelas.php">Lihat Kelas &rarr;</a>
                 <?php
     endif; ?>
             </div>
@@ -858,7 +315,7 @@ endif; ?>
                                 <div class="qa-title">Kelas Saya</div>
                                 <div class="qa-desc">Kelola kelas dan lihat daftar siswa</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rsaquo;</span>
                         </a>
                         <!-- Upload Material Trigger -->
                         <div class="qa-item" onclick="openModal('addMaterialModal')">
@@ -884,7 +341,7 @@ endif; ?>
                                 <div class="qa-title">Jadwal Mengajar</div>
                                 <div class="qa-desc">Lihat jadwal pelajaran Anda</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rsaquo;</span>
                         </a>
                         <a href="../profile.php" class="qa-item">
                             <div class="qa-ico"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
@@ -892,7 +349,7 @@ endif; ?>
                                 <div class="qa-title">Profil Saya</div>
                                 <div class="qa-desc">Ubah data diri dan password</div>
                             </div>
-                            <span class="qa-arrow">›</span>
+                            <span class="qa-arrow">&rsaquo;</span>
                         </a>
                     </div>
                 </div>
@@ -925,7 +382,7 @@ else: ?>
                         <?php
     endforeach; ?>
                         <?php if ($my_classes_count > 5): ?>
-                            <a href="kelas.php" class="view-all-link">Lihat Semua Kelas →</a>
+                            <a href="kelas.php" class="view-all-link">Lihat Semua Kelas &rarr;</a>
                         <?php
     endif; ?>
                     <?php
@@ -1081,3 +538,4 @@ endforeach; ?>
 
 </body>
 </html>
+

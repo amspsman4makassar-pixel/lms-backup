@@ -135,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Import Nilai - <?php echo htmlspecialchars($class_info['name']); ?></title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
@@ -170,10 +171,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
     
     <main class="main-content">
         <?php if ($success): ?>
-            <div style="background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;">âœ“ <?php echo htmlspecialchars($success); ?></div>
+            <div style="background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;">&#10003; <?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
         <?php if ($error): ?>
-            <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;">âš ï¸ <?php echo htmlspecialchars($error); ?></div>
+            <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;">&#9888;ï¸ <?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
 
         <div class="page-header">
@@ -195,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                     <li>Upload file CSV yang sudah diisi pada form di bawah.</li>
                 </ol>
                 <div style="margin-top: 15px;">
-                    <a href="?class_id=<?php echo $class_id; ?>&action=download_template" class="btn" style="background: #10b981; text-decoration: none; padding: 8px 16px; font-size: 0.9rem; display: inline-block;">â¬‡ï¸ Unduh Template CSV</a>
+                    <a href="?class_id=<?php echo $class_id; ?>&action=download_template" class="btn" style="background: #10b981; text-decoration: none; padding: 8px 16px; font-size: 0.9rem; display: inline-block;">&darr;ï¸ Unduh Template CSV</a>
                 </div>
             </div>
 
@@ -235,4 +236,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
 
 </body>
 </html>
+
 

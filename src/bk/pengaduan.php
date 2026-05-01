@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/bk/pengaduan.php
 session_start();
 require_once '../../config/database.php';
@@ -52,64 +52,58 @@ try {
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .ticket-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--primary);
-        }
-        .urgent { border-left-color: var(--danger); }
-        .ticket-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .ticket-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--secondary);
-            margin-bottom: 0.25rem;
-        }
-        .ticket-meta {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            display: flex;
-            gap: 15px;
-        }
         .badge-kategori {
             padding: 4px 10px;
-            border-radius: 20px;
+            border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 700;
             background: #e0e7ff;
             color: #4338ca;
+            display: inline-block;
         }
         .badge-bullying { background: #fee2e2; color: #991b1b; }
         
-        .ticket-body {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
         .status-form {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .status-form select {
             width: auto;
-            min-width: 150px;
-            padding: 0.5rem;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
         }
         .status-form button {
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+        .btn-save {
+            background: #4f46e5;
+            color: white;
+        }
+        .btn-save:hover { background: #4338ca; }
+        .btn-del {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+            margin-left: auto;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        .btn-del:hover { background: #fee2e2; }
+        .tr-urgent {
+            border-left: 4px solid #ef4444 !important;
         }
     </style>
 </head>
@@ -119,19 +113,18 @@ try {
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <!-- Dashboard Hero -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     Layanan E-Counseling BK
                 </h1>
-                <p style="color: rgba(255,255,255,0.8);">Kelola laporan dan pengaduan siswa</p>
+                <p class="page-subtitle">Kelola laporan dan pengaduan siswa</p>
             </div>
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
         </div>
 
-        <div class="content-overlap">
+        <div class="page-content">
             <?php if (isset($_GET['msg'])): ?>
                 <?php if ($_GET['msg'] === 'updated'): ?>
                     <div style="background: var(--primary-light); color: var(--primary); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
@@ -155,6 +148,17 @@ try {
                     <p style="color: var(--text-muted); font-size: 1.1rem;">Belum ada tiket pengaduan yang masuk.</p>
                 </div>
             <?php else: ?>
+                <div class="page-table-wrap">
+                    <table class="page-table">
+                        <thead>
+                            <tr>
+                                <th>Pelapor</th>
+                                <th>Kategori</th>
+                                <th style="width: 35%;">Isi Laporan</th>
+                                <th>Status / Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                 <?php foreach ($tickets as $t): ?>
                     <?php 
                         $isBullying = ($t['kategori'] === 'Bullying');
@@ -163,43 +167,42 @@ try {
                         if ($t['status'] === 'Diproses') $statusColor = '#3b82f6';
                         if ($t['status'] === 'Selesai') $statusColor = '#10b981';
                     ?>
-                    <div class="ticket-card <?php echo $isBullying ? 'urgent' : ''; ?>">
-                        <div class="ticket-header">
-                            <div>
-                                <div class="ticket-title">
-                                    <?php echo htmlspecialchars($t['nama_siswa']); ?> 
-                                    <span style="color: #cbd5e1;">(<?php echo htmlspecialchars($t['kelas']); ?>)</span>
-                                </div>
-                                <div class="ticket-meta">
-                                    <span><?php echo date('d M Y, H:i', strtotime($t['created_at'])); ?></span>
+                            <tr class="<?php echo $isBullying ? 'tr-urgent' : ''; ?>">
+                                <td>
+                                    <div style="font-weight: 700; color: #1e293b;"><?php echo htmlspecialchars($t['nama_siswa']); ?></div>
+                                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Kelas <?php echo htmlspecialchars($t['kelas']); ?></div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;"><?php echo date('d M Y, H:i', strtotime($t['created_at'])); ?></div>
+                                </td>
+                                <td>
                                     <span class="badge-kategori <?php echo $isBullying ? 'badge-bullying' : ''; ?>"><?php echo htmlspecialchars($t['kategori']); ?></span>
-                                </div>
-                            </div>
-                            <div>
-                                <span style="font-size: 0.85rem; font-weight: 700; color: <?php echo $statusColor; ?>; display: flex; align-items: center; gap: 5px;">
-                                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:<?php echo $statusColor; ?>;"></span>
-                                    <?php echo htmlspecialchars($t['status']); ?>
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="ticket-body">
-                            <?php echo nl2br(htmlspecialchars($t['pesan'])); ?>
-                        </div>
-                        
-                        <form method="POST" action="" class="status-form" style="display:flex; flex-wrap:wrap;">
-                            <input type="hidden" name="id" value="<?php echo $t['id']; ?>">
-                            <input type="hidden" name="update_status" value="1">
-                            <select name="status">
-                                <option value="Pending" <?php echo $t['status'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                                <option value="Diproses" <?php echo $t['status'] === 'Diproses' ? 'selected' : ''; ?>>Diproses</option>
-                                <option value="Selesai" <?php echo $t['status'] === 'Selesai' ? 'selected' : ''; ?>>Selesai</option>
-                            </select>
-                            <button type="submit" class="btn btn-secondary">Simpan Status</button>
-                            <a href="?delete=<?php echo $t['id']; ?>" class="btn btn-danger" onclick="return confirm('Hapus tiket pengaduan ini secara permanen?');" style="margin-left:auto;">Hapus Tiket</a>
-                        </form>
-                    </div>
+                                </td>
+                                <td>
+                                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #334155; line-height: 1.5;">
+                                        <?php echo nl2br(htmlspecialchars($t['pesan'])); ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; color: <?php echo $statusColor; ?>; display: flex; align-items: center; gap: 5px;">
+                                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:<?php echo $statusColor; ?>;"></span>
+                                        <?php echo htmlspecialchars($t['status']); ?>
+                                    </div>
+                                    <form method="POST" action="" class="status-form">
+                                        <input type="hidden" name="id" value="<?php echo $t['id']; ?>">
+                                        <input type="hidden" name="update_status" value="1">
+                                        <select name="status">
+                                            <option value="Pending" <?php echo $t['status'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                                            <option value="Diproses" <?php echo $t['status'] === 'Diproses' ? 'selected' : ''; ?>>Diproses</option>
+                                            <option value="Selesai" <?php echo $t['status'] === 'Selesai' ? 'selected' : ''; ?>>Selesai</option>
+                                        </select>
+                                        <button type="submit" class="btn-save">Simpan</button>
+                                        <a href="?delete=<?php echo $t['id']; ?>" class="btn-del" onclick="return confirm('Hapus tiket pengaduan ini secara permanen?');">Hapus</a>
+                                    </form>
+                                </td>
+                            </tr>
                 <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php endif; ?>
         </div>
     </main>

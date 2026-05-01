@@ -1,6 +1,6 @@
-﻿<?php
+<?php
 // src/siswa/kelas_siswa.php
-// Halaman "Kelas Saya" â€” menampilkan kelas siswa beserta ringkasan materi & tugas
+// Halaman "Kelas Saya" Ã¢â‚¬â€ menampilkan kelas siswa beserta ringkasan materi & tugas
 session_start();
 require_once '../../config/database.php';
 
@@ -13,7 +13,7 @@ $student_id = $_SESSION['user_id'];
 
 // Get student's class info
 $stmt = $pdo->prepare("
-    SELECT u.class_id, c.name as class_name, c.grade, c.major
+    SELECT u.class_id, c.name as class_name
     FROM users u
     LEFT JOIN classes c ON u.class_id = c.id
     WHERE u.id = ?
@@ -83,223 +83,79 @@ if ($class_id) {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kelas Saya</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        .main-content { background: #f5f7fb !important; padding: 0 !important; max-width: 100% !important; }
-
-        .page-hero {
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
-            padding: 2.5rem 3rem 5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .page-hero::after {
-            content: '';
-            position: absolute;
-            width: 400px; height: 400px;
-            top: -200px; right: -100px;
-            background: radial-gradient(circle, rgba(129,140,248,0.25) 0%, transparent 60%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .hero-inner { position: relative; z-index: 2; }
-        .hero-inner h1 { font-size: 1.7rem; font-weight: 800; color: #fff; margin-bottom: 0.3rem; }
-        .hero-sub { color: rgba(255,255,255,0.6); font-size: 0.9rem; }
-
-        .page-content {
-            position: relative;
-            margin-top: -2.5rem;
-            padding: 0 3rem 3rem;
-            z-index: 10;
-        }
-
-        /* Class Card */
-        .class-card {
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-            overflow: hidden;
-            transition: transform 0.25s, box-shadow 0.25s;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-        }
-        .class-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 36px rgba(0,0,0,0.1);
-        }
-        .class-card-header {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            padding: 1.8rem 1.5rem 1rem;
-            position: relative;
-        }
-        .class-card-header h2 {
-            color: #fff;
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin: 0 0 4px;
-        }
-        .class-card-header .grade { color: rgba(255,255,255,0.7); font-size: 0.85rem; }
-
-        .class-card-body { padding: 1.5rem; flex: 1; }
-
-        .stat-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 1.2rem;
-        }
-        .stat-pill {
-            flex: 1;
-            text-align: center;
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 12px 8px;
-        }
-        .stat-pill .sp-num {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #4f46e5;
-            line-height: 1;
-        }
-        .stat-pill.green .sp-num { color: #059669; }
-        .stat-pill.red .sp-num   { color: #dc2626; }
-        .stat-pill .sp-lbl {
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 4px;
-        }
-
-        .pending-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: #fef3c7;
-            color: #92400e;
-            font-size: 0.78rem;
-            font-weight: 700;
-            padding: 5px 12px;
-            border-radius: 20px;
-            margin-bottom: 1rem;
-        }
-
-        .teacher-list { display: flex; flex-wrap: wrap; gap: 6px; }
-        .teacher-chip {
-            background: #eef2ff;
-            color: #4f46e5;
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 3px 10px;
-            border-radius: 20px;
-        }
-
-        .enter-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            background: #4f46e5;
-            color: #fff;
-            padding: 11px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 0.88rem;
-            margin-top: 1.2rem;
-            transition: background 0.2s;
-        }
-        .class-card:hover .enter-btn { background: #4338ca; }
-
-        .no-class-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 3rem;
-            text-align: center;
-            color: #94a3b8;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-        }
-    </style>
 </head>
 <body>
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
     <main class="main-content">
 
-        <!-- Hero -->
-        <div class="page-hero">
-            <div class="hero-inner">
-                <h1>Kelas Saya</h1>
-                <p class="hero-sub">Akses materi dan tugas dari kelas Anda</p>
+        <!-- Page Toolbar -->
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Kelas Saya</h1>
+                <p class="page-subtitle">Akses materi dan tugas dari kelas Anda</p>
             </div>
         </div>
 
         <div class="page-content">
             <?php if (!$class_id || !$class_name): ?>
-            <div class="no-class-card">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                <p style="font-size:1rem; color:#64748b; margin-bottom:4px; font-weight:600;">Anda belum terdaftar di kelas manapun.</p>
-                <p style="font-size:0.85rem;">Hubungi Admin untuk mendaftarkan Anda ke kelas.</p>
+            <div class="page-section">
+                <div class="empty-state">
+                    <div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                    <h4>Anda belum terdaftar di kelas manapun</h4>
+                    <p>Hubungi Admin untuk mendaftarkan Anda ke kelas.</p>
+                </div>
             </div>
 
             <?php else: ?>
             <!-- Class Card -->
-            <a href="kelas_detail_siswa.php?class_id=<?php echo intval($class_id); ?>" class="class-card">
-                <div class="class-card-header">
-                    <h2><?php echo htmlspecialchars($class_name); ?></h2>
-                    <?php
-                    $sub_label = '';
-                    if (!empty($student['grade']))  $sub_label .= 'Kelas ' . htmlspecialchars($student['grade']);
-                    if (!empty($student['major']))  $sub_label .= ' Â· ' . htmlspecialchars($student['major']);
-                    ?>
-                    <?php if ($sub_label): ?>
-                        <div class="grade"><?php echo $sub_label; ?></div>
-                    <?php endif; ?>
+            <div class="class-card" style="background: #fff; border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <div style="font-weight: 800; color: #1e293b; font-size: 1.5rem;"><?php echo htmlspecialchars($class_name); ?></div>
+                        <?php
+                        $sub_label = '';
+                        if (!empty($student['grade']))  $sub_label .= 'Kelas ' . htmlspecialchars($student['grade']);
+                        if (!empty($student['major']))  $sub_label .= ' &middot; ' . htmlspecialchars($student['major']);
+                        ?>
+                        <?php if ($sub_label): ?>
+                            <div style="color: #64748b; font-size: 1rem; margin-top: 4px;"><?php echo $sub_label; ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <a href="kelas_detail_siswa.php?class_id=<?php echo intval($class_id); ?>" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700;">
+                        Masuk Kelas &rarr;
+                    </a>
                 </div>
 
-                <div class="class-card-body">
-                    <!-- Stats -->
-                    <div class="stat-row">
-                        <div class="stat-pill">
-                            <div class="sp-num"><?php echo $total_materials; ?></div>
-                            <div class="sp-lbl">Materi</div>
-                        </div>
-                        <div class="stat-pill green">
-                            <div class="sp-num"><?php echo $total_assignments; ?></div>
-                            <div class="sp-lbl">Tugas Aktif</div>
-                        </div>
-                        <div class="stat-pill red">
-                            <div class="sp-num"><?php echo $pending; ?></div>
-                            <div class="sp-lbl">Belum Dikerjakan</div>
-                        </div>
-                    </div>
-
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span style="display:inline-block; background:#e0e7ff; color:#4338ca; padding:6px 12px; border-radius:8px; font-size:0.85rem; font-weight:700;"><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1; margin-top:-2px;'><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> <?php echo $total_materials; ?> Materi</span>
+                    <span style="display:inline-block; background:#d1fae5; color:#059669; padding:6px 12px; border-radius:8px; font-size:0.85rem; font-weight:700;"><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1; margin-top:-2px;'><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> <?php echo $total_assignments; ?> Tugas</span>
                     <?php if ($pending > 0): ?>
-                    <div class="pending-badge">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        <?php echo $pending; ?> tugas menunggu dikerjakan
-                    </div>
+                        <span style="display:inline-block; background:#fee2e2; color:#dc2626; padding:6px 12px; border-radius:8px; font-size:0.85rem; font-weight:700;"><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1; margin-top:-2px;'><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> <?php echo $pending; ?> Menunggu</span>
                     <?php endif; ?>
-
-                    <?php if (!empty($teachers)): ?>
-                    <p style="font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">Guru</p>
-                    <div class="teacher-list">
-                        <?php foreach ($teachers as $t): ?>
-                        <span class="teacher-chip"><?php echo htmlspecialchars($t['full_name']); ?><?php if ($t['subject_name']): ?> Â· <?php echo htmlspecialchars($t['subject_name']); ?><?php endif; ?></span>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-
-                    <div class="enter-btn">
-                        Masuk ke Kelas
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                    </div>
                 </div>
-            </a>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+                    <div style="font-size: 0.85rem; color: #64748b; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">Guru Pengajar:</div>
+                    <?php if (!empty($teachers)): ?>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <?php foreach ($teachers as $t): ?>
+                        <span style="display:inline-flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid #e2e8f0; color:#475569; font-size:0.85rem; font-weight:600; padding:4px 12px; border-radius:20px;">
+                            <div style="width:20px; height:20px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#64748b; font-weight:800;"><?php echo strtoupper(substr($t['full_name'], 0, 1)); ?></div>
+                            <?php echo htmlspecialchars($t['full_name']); ?><?php if ($t['subject_name']): ?> <span style="color:#94a3b8; font-weight:500;">&middot; <?php echo htmlspecialchars($t['subject_name']); ?></span><?php endif; ?>
+                        </span>
+                        <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <span style="color: #94a3b8; font-size: 0.85rem;">Belum ada guru pengajar</span>
+                    <?php endif; ?>
+                </div>
+            </div>
             <?php endif; ?>
         </div>
 
@@ -307,4 +163,5 @@ if ($class_id) {
 </div>
 </body>
 </html>
+
 

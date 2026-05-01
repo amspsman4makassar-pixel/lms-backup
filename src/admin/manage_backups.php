@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/admin/manage_backups.php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
@@ -116,36 +116,30 @@ function renderTree($node, $path = 'backups', $level = 0) {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Kelola Backup Database & File - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Backup - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 1.5rem;
+        .main-content { background: #f5f7fb !important; padding: 0 !important; }
+        .page-hero {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            padding: 2.5rem 3rem 5rem; position: relative; overflow: hidden;
         }
-        .b-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 0.25rem;
+        .page-hero::before { content:''; position:absolute; right:-60px; top:-60px; width:250px; height:250px; background:rgba(255,255,255,0.07); border-radius:50%; }
+        .page-hero h1 { color:#fff; font-size:1.6rem; font-weight:700; margin:0 0 0.4rem; }
+        .page-hero p  { color:rgba(255,255,255,0.8); margin:0; font-size:0.95rem; }
+        .page-content { position:relative; margin-top:-2.5rem; padding:0 3rem 3rem; z-index:10; }
+        .btn-backup-now {
+            position: absolute; right: 3rem; top: 50%; transform: translateY(-50%); z-index:10;
+            background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); color:#fff;
+            padding:10px 22px; border-radius:10px; font-size:0.9rem; font-weight:700;
+            cursor:pointer; backdrop-filter:blur(5px); display:flex; align-items:center; gap:8px;
+            font-family:inherit;
         }
-        .b-sub {
-            color: #64748b;
-            font-size: 0.95rem;
-        }
-        details > summary::-webkit-details-marker {
-            display: none;
-        }
-        details[open] > summary {
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
+        .btn-backup-now:hover { background:rgba(255,255,255,0.28); }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -154,23 +148,26 @@ function renderTree($node, $path = 'backups', $level = 0) {
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <div class="page-header">
+        <div class="page-hero">
             <div>
-                <h1 class="b-title">Sistem Backup Terpadu</h1>
-                <p class="b-sub">Arsip sistem harian (Database SQL & Uploads Files) dikelompokkan secara otomatis.</p>
+                <h1>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:8px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                    Sistem Backup Terpadu
+                </h1>
+                <p>Arsip sistem harian (Database SQL &amp; Uploads Files) dikelompokkan secara otomatis.</p>
             </div>
-            <button onclick="triggerManualBackup()" id="btn-backup-manual" class="btn" style="background:#0ea5e9; padding:10px 20px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; display:flex; gap:8px; align-items:center;">
+            <button onclick="triggerManualBackup()" id="btn-backup-manual" class="btn-backup-now">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
                 Backup Sekarang
             </button>
         </div>
-        
-        <div id="alert-container"></div>
-        
-        <div class="tree-container">
-            <?php renderTree($backupTree); ?>
+
+        <div class="page-content">
+            <div id="alert-container"></div>
+            <div class="tree-container">
+                <?php renderTree($backupTree); ?>
+            </div>
         </div>
-        
     </main>
 </div>
 

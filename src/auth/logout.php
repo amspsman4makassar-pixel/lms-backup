@@ -12,6 +12,7 @@ if (strpos($redirect, 'http') === 0) {
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="refresh" content="0;url=<?php echo htmlspecialchars($redirect); ?>">
 </head>
 <body>
@@ -19,4 +20,5 @@ if (strpos($redirect, 'http') === 0) {
     <script>window.location.href = '<?php echo addslashes($redirect); ?>';</script>
 </body>
 </html>
+
 

@@ -75,10 +75,10 @@ if ($selected_from) {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Kenaikan Kelas - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         function toggleCheckboxes(source) {
             checkboxes = document.getElementsByName('students[]');
@@ -88,26 +88,24 @@ if ($selected_from) {
         }
     </script>
 </head>
-<body class="admin-full-layout">
+<body>
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
         <!-- Unified Hero Header -->
-        <div class="dashboard-hero">
-            <div style="position: relative; z-index: 2;">
-                <h1 style="color: white; margin-bottom: 0.5rem;"><svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block; vertical-align:middle; line-height:1;'><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Kenaikan Kelas / Kelulusan</h1>
-                <p style="color: rgba(255,255,255,0.8);">Pindahkan siswa ke kelas tingkat lanjut atau luluskan siswa tingkat akhir.</p>
+        <div class="page-toolbar">
+            <div class="page-toolbar-left">
+                <h1 class="page-title">Promosi Kelas</h1>
+                <p class="page-subtitle">Naikkan kelas siswa ke tingkat berikutnya atau tandai sebagai tamat</p>
             </div>
-            <div style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); z-index: 10;">
-                <a href="manage_classes.php" class="btn" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">&larr; Kembali ke Kelola Kelas</a>
-            </div>
-            <!-- Decorative circle -->
-            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
+        <div class="page-toolbar-right" style="padding:0 32px 12px;">
+            <a href="manage_classes.php" class="btn btn-secondary btn-sm">&larr; Kembali ke Kelola Kelas</a>
         </div>
 
-        <div class="content-overlap">
+        <div class="page-content">
             <div class="card">
             <?php if ($success): ?><div class="alert alert-success"><?php echo $success; ?></div><?php
 endif; ?>
@@ -159,30 +157,29 @@ elseif ($selected_from): ?>
 
                     <div style="margin-top: 1rem;">
                         <label style="font-weight:bold; display:block; margin-bottom:10px;">Daftar Siswa:</label>
-                        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <thead style="background: #f8fafc; position: sticky; top: 0;">
+                        <div class="page-table-wrap" style="max-height: 400px; overflow-y: auto;">
+                            <table class="page-table">
+                                <thead style="position: sticky; top: 0; z-index: 1;">
                                     <tr>
-                                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0; width: 40px;">
+                                        <th style="width: 40px;">
                                             <input type="checkbox" checked onclick="toggleCheckboxes(this)">
                                         </th>
-                                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">NIS</th>
-                                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Nama Siswa</th>
+                                        <th>NIS</th>
+                                        <th>Nama Siswa</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($students as $s): ?>
                                         <tr>
-                                            <td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">
+                                            <td>
                                                 <input type="checkbox" name="students[]" value="<?php echo $s['id']; ?>" checked>
                                             </td>
-                                            <td style="padding: 10px; border-bottom: 1px solid #f1f5f9;"><?php echo htmlspecialchars($s['nis'] ?? '-'); ?></td>
-                                            <td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">
+                                            <td><?php echo htmlspecialchars($s['nis'] ?? '-'); ?></td>
+                                            <td>
                                                 <strong><?php echo htmlspecialchars($s['full_name']); ?></strong>
                                             </td>
                                         </tr>
-                                    <?php
-    endforeach; ?>
+                                    <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -204,4 +201,5 @@ endif; ?>
 
 </body>
 </html>
+
 

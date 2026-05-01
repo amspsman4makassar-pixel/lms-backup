@@ -141,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title><?php echo $edit_mode ? "Edit Pengguna" : "Tambah Pengguna Baru"; ?> - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
@@ -193,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 </head>
-<body class="admin-full-layout" onload="toggleFields()">
+<body>
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
@@ -356,3 +357,4 @@ function togglePasswordInput(inputId, btn) {
 
  
  
+

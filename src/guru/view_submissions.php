@@ -45,38 +45,45 @@ $submissions = $stmt->fetchAll();
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Penilaian Tugas</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="unified-layout">
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
     
     <main class="main-content">
-        <div style="margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <a href="manage_assignments.php" class="btn btn-secondary">&larr; Kembali</a>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a href="export_grades.php?assignment_id=<?php echo intval($assignment_id); ?>" class="btn" style="background:#16a34a; color:#fff; display:inline-flex; align-items:center; gap:6px; font-size:0.88rem;" title="Download CSV untuk Excel">
-                    <svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><polyline points='7 10 12 15 17 10'/><line x1='12' y1='15' x2='12' y2='3'/></svg>
-                    Excel / CSV
-                </a>
-                <a href="export_grades_print.php?assignment_id=<?php echo intval($assignment_id); ?>" target="_blank" class="btn" style="background:#dc2626; color:#fff; display:inline-flex; align-items:center; gap:6px; font-size:0.88rem;" title="Cetak / Simpan sebagai PDF">
-                    <svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg>
-                    PDF / Print
-                </a>
+        <!-- Dashboard Hero -->
+        <div class="dashboard-hero">
+            <div style="position: relative; z-index: 2;">
+                <div style="margin-bottom: 1rem;">
+                    <a href="manage_assignments.php" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 20px; width: fit-content; backdrop-filter: blur(4px);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                        Kembali ke Kelola Tugas
+                    </a>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h1 style="color: white; margin-bottom: 0.5rem;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Penilaian: <?php echo htmlspecialchars($assignment['title']); ?></h1>
+                        <p style="color: rgba(255,255,255,0.8);">Evaluasi dan berikan umpan balik kepada siswa.</p>
+                    </div>
+                </div>
             </div>
+            <div style="position: absolute; right: -50px; top: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
         </div>
-        
-        <header style="margin-bottom: 1.5rem;">
-            <h2><?php echo htmlspecialchars($assignment['title']); ?></h2>
-            <?php if (isset($success))
-    echo "<div style='background:#dcfce7; color:#166534; padding:10px; border-radius:8px;'>$success</div>"; ?>
-        </header>
-        
-        <div class="card">
+
+        <div class="content-overlap">
+            <?php if (isset($success)): ?>
+                <div style="background:#dcfce7; color:#166534; padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <?php echo htmlspecialchars($success); ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="page-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
                 <h3 style="margin:0; font-size:1rem; color:#475569;">
                     Total mengumpulkan: <strong style="color:#1e293b;"><?php echo count($submissions); ?> siswa</strong>
@@ -99,7 +106,8 @@ $submissions = $stmt->fetchAll();
                     </a>
                 </div>
             </div>
-            <table>
+            <div class="page-table-wrap">
+                <table class="page-table">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -180,10 +188,13 @@ $submissions = $stmt->fetchAll();
 endif; ?>
                 </tbody>
             </table>
+            </div>
+        </div>
         </div>
     </main>
 </div>
 
 </body>
 </html>
+
 

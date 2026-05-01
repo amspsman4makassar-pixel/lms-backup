@@ -135,12 +135,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Import Guru - Admin</title>
     <link rel="stylesheet" href="/public/assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="admin-full-layout">
+<body>
 
 <div class="app-container">
     <?php include '../templates/sidebar.php'; ?>
@@ -220,4 +221,5 @@ endif; ?>
 
 </body>
 </html>
+
 
