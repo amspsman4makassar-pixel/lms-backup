@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // src/guru/manage_assignments.php
 session_start();
 require_once '../../config/database.php';
@@ -218,16 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_assignment'])) {
 }
 
 // Fetch Assignments grouped by class
-$filter_type = $_GET['filter_type'] ?? 'all';
-$type_condition = "";
+$type_condition = "AND assignments.assignment_type = 'tugas'";
 $params = [$_SESSION['user_id']];
-
-if ($filter_type === 'tugas') {
-    $type_condition = "AND assignments.assignment_type = 'tugas'";
-}
-elseif ($filter_type === 'absensi') {
-    $type_condition = "AND assignments.assignment_type = 'absensi'";
-}
 
 // Query per-row per class (compatible with MySQL 5.x+)
 $stmt = $pdo->prepare("
@@ -311,12 +303,7 @@ $total_archived = array_sum(array_map(fn($g) => count($g['assignments']), $group
                             <h3 style="margin: 0;">Daftar Tugas Aktif</h3>
                             <p style="margin: 4px 0 0; font-size: 0.85rem; color: var(--text-muted);"><?php echo $total_active; ?> tugas di <?php echo count($grouped_active); ?> kelas</p>
                         </div>
-                        <div class="filter-group" style="display: flex; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
-                            <?php $ft = $_GET['filter_type'] ?? 'all'; ?>
-                            <a href="manage_assignments.php?filter_type=all" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: <?php echo $ft == 'all' ? '#fff' : '#64748b'; ?>; background: <?php echo $ft == 'all' ? '#4f46e5' : 'transparent'; ?>;">Semua</a>
-                            <a href="manage_assignments.php?filter_type=tugas" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: <?php echo $ft == 'tugas' ? '#fff' : '#64748b'; ?>; background: <?php echo $ft == 'tugas' ? '#4f46e5' : 'transparent'; ?>;">Tugas</a>
-                            <a href="manage_assignments.php?filter_type=absensi" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: <?php echo $ft == 'absensi' ? '#fff' : '#64748b'; ?>; background: <?php echo $ft == 'absensi' ? '#4f46e5' : 'transparent'; ?>;">Absensi</a>
-                        </div>
+
                     </div>
 
                     <?php if (empty($grouped_active)): ?>

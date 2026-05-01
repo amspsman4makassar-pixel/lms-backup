@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'siswa') {
 
 $student_id = $_SESSION['user_id'];
 $class_id   = intval($_GET['class_id'] ?? 0);
-$tab        = $_GET['tab'] ?? 'materi'; // 'materi' or 'tugas'
+$tab        = $_GET['tab'] ?? 'materi'; // 'materi', 'tugas', or 'absensi'
 
 // Verify this student belongs to this class
 $stmt = $pdo->prepare("SELECT u.class_id, c.name as class_name FROM users u LEFT JOIN classes c ON u.class_id = c.id WHERE u.id = ?");
@@ -111,6 +111,7 @@ if ($tab === 'tugas') {
             LEFT JOIN subjects s_u ON u.subject_id = s_u.id
             LEFT JOIN subjects s_a ON a.subject_id = s_a.id
             WHERE ac.class_id = ? AND a.status = 'active'
+            AND a.assignment_type = 'tugas'
             AND $subj_cond
             AND NOT EXISTS (
                 SELECT 1 FROM submissions s WHERE s.assignment_id = a.id AND s.student_id = ?
@@ -133,6 +134,7 @@ if ($tab === 'tugas') {
             LEFT JOIN subjects s_u ON u.subject_id = s_u.id
             LEFT JOIN subjects s_a ON a.subject_id = s_a.id
             WHERE s.student_id = ? AND ac.class_id = ?
+            AND a.assignment_type = 'tugas'
             AND $subj_cond
             ORDER BY s.submitted_at DESC";
         $stmt2 = $pdo->prepare($sql2);
@@ -156,12 +158,101 @@ if ($tab === 'tugas') {
             JOIN users u ON a.teacher_id = u.id
             LEFT JOIN subjects s_u ON u.subject_id = s_u.id
             LEFT JOIN subjects s_a ON a.subject_id = s_a.id
-            WHERE ac.class_id = ?
+            WHERE ac.class_id = ? AND a.assignment_type = 'tugas'
             GROUP BY id, name, u.full_name
             ORDER BY name ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$student_id, $class_id]);
         $tugas_subjects = $stmt->fetchAll();
+    }
+}
+
+// ────────────────────────────────────────────────
+// TAB: ABSENSI - per-subject grouping
+// ────────────────────────────────────────────────
+$absensi_subject_id  = isset($_GET['absensi_subject_id']) ? intval($_GET['absensi_subject_id']) : null;
+$is_absensi_general  = isset($_GET['absensi_general']);
+$current_absensi_subject = null;
+$absensi_subjects    = [];
+$pending_absensi     = [];
+$completed_absensi   = [];
+
+if ($tab === 'absensi') {
+    if ($absensi_subject_id || $is_absensi_general) {
+        if ($is_absensi_general) {
+            $subj_cond = "COALESCE(a.subject_id, u.subject_id) IS NULL";
+            $current_absensi_subject = 'Umum / Lainnya';
+            $exec_extra = [];
+        } else {
+            $subj_cond = "COALESCE(a.subject_id, u.subject_id) = ?";
+            $exec_extra = [$absensi_subject_id];
+            $st2 = $pdo->prepare("SELECT name FROM subjects WHERE id = ?");
+            $st2->execute([$absensi_subject_id]);
+            $current_absensi_subject = $st2->fetchColumn() ?: 'Mata Pelajaran';
+        }
+
+        // Pending Absensi
+        $sql = "
+            SELECT a.*, u.full_name as teacher_name, COALESCE(s_a.name, s_u.name, 'Umum') as subject_name
+            FROM assignments a
+            JOIN assignment_classes ac ON a.id = ac.assignment_id
+            JOIN users u ON a.teacher_id = u.id
+            LEFT JOIN subjects s_u ON u.subject_id = s_u.id
+            LEFT JOIN subjects s_a ON a.subject_id = s_a.id
+            WHERE ac.class_id = ? AND a.status = 'active'
+            AND a.assignment_type = 'absensi'
+            AND $subj_cond
+            AND NOT EXISTS (
+                SELECT 1 FROM submissions s WHERE s.assignment_id = a.id AND s.student_id = ?
+            )
+            ORDER BY a.created_at DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array_merge([$class_id], $exec_extra, [$student_id]));
+        $pending_absensi = $stmt->fetchAll();
+
+        // Completed Absensi
+        $sql2 = "
+            SELECT a.title, a.deadline, a.assignment_type,
+                   s.submitted_at, s.grade, s.status as sub_status,
+                   a.id as assignment_id, s.id as submission_id,
+                   u.full_name as teacher_name
+            FROM submissions s
+            JOIN assignments a ON s.assignment_id = a.id
+            JOIN assignment_classes ac ON a.id = ac.assignment_id
+            JOIN users u ON a.teacher_id = u.id
+            LEFT JOIN subjects s_u ON u.subject_id = s_u.id
+            LEFT JOIN subjects s_a ON a.subject_id = s_a.id
+            WHERE s.student_id = ? AND ac.class_id = ?
+            AND a.assignment_type = 'absensi'
+            AND $subj_cond
+            ORDER BY s.submitted_at DESC";
+        $stmt2 = $pdo->prepare($sql2);
+        $stmt2->execute(array_merge([$student_id, $class_id], $exec_extra));
+        $completed_absensi = $stmt2->fetchAll();
+
+    } else {
+        // Subject list view for Absensi
+        $sql = "
+            SELECT
+                COALESCE(a.subject_id, u.subject_id)   as id,
+                COALESCE(s_a.name, s_u.name, 'Umum / Lainnya')  as name,
+                u.full_name                            as teacher_name,
+                COUNT(DISTINCT a.id)                   as total_absensi,
+                SUM(CASE WHEN NOT EXISTS (
+                    SELECT 1 FROM submissions sub
+                    WHERE sub.assignment_id = a.id AND sub.student_id = ?
+                ) AND a.status='active' THEN 1 ELSE 0 END) as pending_count
+            FROM assignments a
+            JOIN assignment_classes ac ON a.id = ac.assignment_id
+            JOIN users u ON a.teacher_id = u.id
+            LEFT JOIN subjects s_u ON u.subject_id = s_u.id
+            LEFT JOIN subjects s_a ON a.subject_id = s_a.id
+            WHERE ac.class_id = ? AND a.assignment_type = 'absensi'
+            GROUP BY id, name, u.full_name
+            ORDER BY name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$student_id, $class_id]);
+        $absensi_subjects = $stmt->fetchAll();
     }
 }
 
@@ -327,6 +418,10 @@ function getTypeIcon(string $type): array {
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     Tugas Saya
                 </a>
+                <a href="?class_id=<?php echo $class_id; ?>&tab=absensi" class="tab-btn <?php echo $tab === 'absensi' ? 'active' : ''; ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Absensi
+                </a>
             </div>
 
             <?php if ($tab === 'materi'): ?>
@@ -407,7 +502,7 @@ function getTypeIcon(string $type): array {
                 <?php endif; ?>
             <?php endif; ?>
 
-            <?php else: ?>
+            <?php elseif ($tab === 'tugas'): ?>
             <!-- ══════════ TAB TUGAS (per-subject) ══════════ -->
 
             <?php if ($tugas_subject_id || $is_tugas_general): ?>
@@ -556,7 +651,143 @@ function getTypeIcon(string $type): array {
                 <?php endif; ?>
             <?php endif; ?><!-- end if tugas_subject / else subject-list -->
 
-            <?php endif; ?><!-- end if tab===materi / else tugas -->
+            <?php elseif ($tab === 'absensi'): ?>
+            <!-- ══════════ TAB ABSENSI ══════════ -->
+            
+            <?php if ($absensi_subject_id || $is_absensi_general): ?>
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <a href="?class_id=<?php echo $class_id; ?>&tab=absensi">Semua Mapel</a>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    <span style="color:#1e293b; font-weight:600;"><?php echo htmlspecialchars($current_absensi_subject ?? ''); ?></span>
+                </div>
+
+                <!-- PENDING ABSENSI -->
+                <div class="task-section">
+                    <div class="task-section-title">
+                        Belum Mengisi Kehadiran
+                        <span style="background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:10px; font-size:.68rem; margin-left:6px;"><?php echo count($pending_absensi); ?></span>
+                    </div>
+                    <?php if (empty($pending_absensi)): ?>
+                    <div class="empty-state" style="padding:2rem; background:#fff; border-radius:14px; box-shadow:0 1px 6px rgba(0,0,0,.04);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <p style="color:#059669; font-weight:600;">Semua absensi mata pelajaran ini sudah diisi!</p>
+                    </div>
+                    <?php else: ?>
+                    <?php foreach ($pending_absensi as $t):
+                        $deadline_ts = strtotime($t['deadline']);
+                        $is_overdue  = $deadline_ts < time();
+                    ?>
+                    <div class="task-card">
+                        <div class="task-dot" style="background:<?php echo $is_overdue ? '#ef4444' : '#f59e0b'; ?>;"></div>
+                        <div class="task-info">
+                            <div class="task-title">
+                                <span style="background:#dcfce7; color:#166534; font-size:.65rem; font-weight:700; padding:1px 6px; border-radius:3px; margin-right:5px;">Absensi</span>
+                                <?php echo htmlspecialchars($t['title']); ?>
+                            </div>
+                            <div class="task-meta <?php echo $is_overdue ? 'deadline-passed' : ''; ?>">
+                                Batas Waktu: <?php echo date('d M Y, H:i', $deadline_ts); ?>
+                                <?php if ($is_overdue): ?> &middot; <strong>SUDAH LEWAT</strong><?php endif; ?>
+                                &middot; <?php echo htmlspecialchars($t['teacher_name']); ?>
+                            </div>
+                        </div>
+                        <a href="assignments.php?assignment_id=<?php echo $t['id']; ?>" class="kerjakan-btn" style="<?php echo $is_overdue ? 'background:#fef3c7; color:#92400e; border-color:#fcd34d;' : ''; ?>">
+                            <?php if ($is_overdue): ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Isi (Terlambat)
+                            <?php else: ?>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Isi Kehadiran
+                            <?php endif; ?>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- COMPLETED ABSENSI -->
+                <div class="task-section">
+                    <div class="task-section-title">
+                        Riwayat Kehadiran
+                        <span style="background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:10px; font-size:.68rem; margin-left:6px;"><?php echo count($completed_absensi); ?></span>
+                    </div>
+                    <?php if (empty($completed_absensi)): ?>
+                    <div class="empty-state" style="padding:2rem; background:#fff; border-radius:14px; box-shadow:0 1px 6px rgba(0,0,0,.04);">
+                        <p>Belum ada absensi yang diisi untuk mapel ini.</p>
+                    </div>
+                    <?php else: ?>
+                    <?php foreach ($completed_absensi as $d):
+                        $is_late = ($d['sub_status'] === 'terlambat') || (!empty($d['submitted_at']) && strtotime($d['submitted_at']) > strtotime($d['deadline']));
+                    ?>
+                    <div class="task-card">
+                        <div class="task-dot" style="background:#10b981;"></div>
+                        <div class="task-info">
+                            <div class="task-title"><?php echo htmlspecialchars($d['title']); ?></div>
+                            <div class="task-meta">
+                                Waktu Isi: <?php echo date('d M Y, H:i', strtotime($d['submitted_at'])); ?>
+                                <?php if ($is_late): ?> &middot; <span style="color:#be185d; font-weight:600;">Terlambat</span><?php endif; ?>
+                                &middot; <?php echo htmlspecialchars($d['teacher_name']); ?>
+                            </div>
+                        </div>
+                        <span class="task-badge badge-done" style="border:1px solid #bbf7d0;"><?php echo htmlspecialchars($d['sub_status'] ?? 'Hadir'); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+            <?php else: ?>
+                <!-- ── Subject list for Absensi ── -->
+                <?php if (empty($absensi_subjects)): ?>
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <p>Belum ada daftar absensi untuk kelas ini.</p>
+                </div>
+                <?php else: ?>
+                <div class="page-table-wrap">
+                    <table class="page-table">
+                        <thead>
+                            <tr>
+                                <th class="num-col">No</th>
+                                <th>Mata Pelajaran</th>
+                                <th>Guru</th>
+                                <th>Total Absen</th>
+                                <th>Belum Diisi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($absensi_subjects as $i => $sub):
+                            $href = ($sub['id'] === null)
+                                ? "?class_id={$class_id}&tab=absensi&absensi_general=1"
+                                : "?class_id={$class_id}&tab=absensi&absensi_subject_id={$sub['id']}";
+                            $has_pending = intval($sub['pending_count']) > 0;
+                        ?>
+                            <tr>
+                                <td class="num-col" data-label="No"><?php echo $i + 1; ?></td>
+                                <td style="font-weight:700; color:#1e293b;" data-label="Mata Pelajaran"><?php echo htmlspecialchars($sub['name']); ?></td>
+                                <td style="color:#64748b; font-size:0.85rem;" data-label="Guru"><?php echo htmlspecialchars($sub['teacher_name']); ?></td>
+                                <td data-label="Total Absen"><span class="count-b"><?php echo intval($sub['total_absensi']); ?> Absen</span></td>
+                                <td data-label="Belum Diisi">
+                                    <?php if ($has_pending): ?>
+                                        <span style="display:inline-block; background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:6px; font-size:0.78rem; font-weight:700;"><?php echo intval($sub['pending_count']); ?> Belum</span>
+                                    <?php else: ?>
+                                        <span style="display:inline-block; background:#d1fae5; color:#059669; padding:3px 10px; border-radius:6px; font-size:0.78rem; font-weight:700;"><svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' style='display:inline-block;vertical-align:middle;margin-top:-2px;margin-right:2px;'><polyline points='20 6 9 17 4 12'></polyline></svg>Semua Selesai</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td data-label="Aksi">
+                                    <a href="<?php echo $href; ?>" class="sub-btn" style="background:#f0fdf4; color:#166534;">
+                                        Lihat Kehadiran
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php endif; ?><!-- end if tab===materi / else tugas / absensi -->
 
         </div><!-- /.page-content -->
     </main>
