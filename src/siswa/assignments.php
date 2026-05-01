@@ -58,47 +58,49 @@ $class_id = $cl_stmt->fetchColumn();
 // Handle submission
 $success_msg = '';
 $error_msg   = '';
+$edit_mode   = isset($_GET['edit']) && $existing_submission && $existing_submission['grade'] === null && ($assignment['assignment_type'] ?? 'tugas') !== 'absensi';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existing_submission) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $is_resubmit = !empty($_POST['resubmit']) && $existing_submission && $existing_submission['grade'] === null;
+
     if (($assignment['assignment_type'] ?? 'tugas') === 'absensi') {
-        $status = $_POST['status'] ?? 'hadir';
-        if (!in_array($status, ['hadir', 'sakit', 'izin'])) {
-            $status = 'hadir';
-        }
-        
-        $current_time = date('H:i');
-        if ($current_time < '07:00' || $current_time > '16:00') {
-            $error_msg = "Absensi hanya dapat dilakukan antara pukul 07:00 - 16:00 WITA.";
+        // ── ABSENSI: hanya boleh submit pertama kali ──
+        if (!$existing_submission) {
+            $status = $_POST['status'] ?? 'hadir';
+            if (!in_array($status, ['hadir', 'sakit', 'izin'])) $status = 'hadir';
+
+            $current_time = date('H:i');
+            if ($current_time < '07:00' || $current_time > '16:00') {
+                $error_msg = "Absensi hanya dapat dilakukan antara pukul 07:00 - 16:00 WITA.";
+            } else {
+                $ins = $pdo->prepare("INSERT INTO submissions (assignment_id, student_id, status, submitted_at) VALUES (?, ?, ?, NOW())");
+                $ins->execute([$assignment_id, $student_id, $status]);
+                $success_msg = "Kehadiran berhasil dicatat!";
+                $sub_stmt->execute([$assignment_id, $student_id]);
+                $existing_submission = $sub_stmt->fetch();
+            }
         } else {
-            $ins = $pdo->prepare("
-                INSERT INTO submissions (assignment_id, student_id, status, submitted_at)
-                VALUES (?, ?, ?, NOW())
-            ");
-            $ins->execute([$assignment_id, $student_id, $status]);
-            $success_msg = "Kehadiran berhasil dicatat!";
-            
-            $sub_stmt->execute([$assignment_id, $student_id]);
-            $existing_submission = $sub_stmt->fetch();
+            $error_msg = "Absensi sudah tercatat dan tidak dapat diubah.";
         }
     } else {
-        $file_path    = null;
+        // ── TUGAS: submit baru ATAU kirim ulang ──
+        $file_path = null;
 
-        // Handle file upload
         if (!empty($_FILES['submission_file']['name'])) {
             $upload_dir = '../../public/uploads/submissions/';
             if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 
-            $orig_name  = basename($_FILES['submission_file']['name']);
-            $ext        = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
-            $allowed    = ['pdf','doc','docx','ppt','pptx','xls','xlsx','jpg','jpeg','png','zip','rar'];
+            $orig_name = basename($_FILES['submission_file']['name']);
+            $ext       = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
+            $allowed   = ['pdf','doc','docx','ppt','pptx','xls','xlsx','jpg','jpeg','png','zip','rar'];
 
             if (!in_array($ext, $allowed)) {
                 $error_msg = "Format file tidak didukung. Gunakan: " . implode(', ', $allowed);
             } elseif ($_FILES['submission_file']['size'] > 20 * 1024 * 1024) {
                 $error_msg = "Ukuran file maksimal 20MB.";
             } else {
-                $new_name  = 'sub_' . $student_id . '_' . $assignment_id . '_' . time() . '.' . $ext;
-                $dest      = $upload_dir . $new_name;
+                $new_name = 'sub_' . $student_id . '_' . $assignment_id . '_' . time() . '.' . $ext;
+                $dest     = $upload_dir . $new_name;
                 if (move_uploaded_file($_FILES['submission_file']['tmp_name'], $dest)) {
                     $file_path = 'public/uploads/submissions/' . $new_name;
                 } else {
@@ -110,17 +112,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existing_submission) {
         if (!$error_msg) {
             if (!$file_path) {
                 $error_msg = "Harap upload file tugas.";
-            } else {
+            } elseif ($is_resubmit) {
+                // ── UPDATE submission yang ada ──
                 $sub_status = $is_overdue ? 'terlambat' : 'menunggu_nilai';
-                $ins = $pdo->prepare("
-                    INSERT INTO submissions (assignment_id, student_id, file_path, status, submitted_at)
-                    VALUES (?, ?, ?, ?, NOW())
-                ");
-                $ins->execute([$assignment_id, $student_id, $file_path, $sub_status]);
-                $success_msg = "Tugas berhasil dikumpulkan!" . ($is_overdue ? " (Terlambat)" : "");
-                // Refresh submission
+                $upd = $pdo->prepare("UPDATE submissions SET file_path = ?, status = ?, updated_at = NOW() WHERE id = ? AND student_id = ?");
+                $upd->execute([$file_path, $sub_status, $existing_submission['id'], $student_id]);
+                $success_msg = "Tugas berhasil diperbarui!" . ($is_overdue ? " (Terlambat)" : "");
+                $edit_mode = false;
                 $sub_stmt->execute([$assignment_id, $student_id]);
                 $existing_submission = $sub_stmt->fetch();
+            } elseif (!$existing_submission) {
+                // ── INSERT baru ──
+                $sub_status = $is_overdue ? 'terlambat' : 'menunggu_nilai';
+                $ins = $pdo->prepare("INSERT INTO submissions (assignment_id, student_id, file_path, status, submitted_at) VALUES (?, ?, ?, ?, NOW())");
+                $ins->execute([$assignment_id, $student_id, $file_path, $sub_status]);
+                $success_msg = "Tugas berhasil dikumpulkan!" . ($is_overdue ? " (Terlambat)" : "");
+                $sub_stmt->execute([$assignment_id, $student_id]);
+                $existing_submission = $sub_stmt->fetch();
+            } else {
+                $error_msg = "Tugas sudah dikumpulkan. Gunakan tombol Edit untuk memperbarui.";
             }
         }
     }
@@ -422,7 +432,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existing_submission) {
                 <?php endif; ?>
 
                 <!-- Already submitted -->
-                <?php if ($existing_submission): ?>
+                <?php if ($existing_submission && !$edit_mode): ?>
                 <div class="done-card">
                     <div class="done-icon">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -437,6 +447,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existing_submission) {
                             &middot; <span style="color:#d97706;font-weight:700;">Terlambat</span>
                         <?php endif; ?>
                         </p>
+                        <?php if (!empty($existing_submission['updated_at'])): ?>
+                        <p style="margin-top:4px;font-size:0.8rem;color:#f59e0b;font-weight:600;display:flex;align-items:center;gap:5px;justify-content:center;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Diedit pada <?php echo date('d M Y, H:i', strtotime($existing_submission['updated_at'])); ?>
+                        </p>
+                        <?php endif; ?>
                         <?php if ($existing_submission['grade'] !== null): ?>
                             <p style="margin-top:10px;font-size:1.1rem;font-weight:800;color:#0f172a;">
                                 Nilai: <?php echo htmlspecialchars($existing_submission['grade']); ?>
@@ -450,17 +466,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existing_submission) {
                                 Lihat File yang Dikumpulkan
                             </a>
                         <?php endif; ?>
+                        <?php if ($existing_submission['grade'] === null): ?>
+                        <a href="?assignment_id=<?php echo $assignment_id; ?>&edit=1" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;margin-left:8px;padding:8px 16px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit / Kirim Ulang
+                        </a>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
-                <?php else: ?>
-                <!-- Submission Form -->
+                <?php elseif (!$existing_submission || $edit_mode): ?>
+                <!-- Submission Form (new OR edit mode) -->
                 <div class="assign-form-card">
+                    <?php if ($edit_mode): ?>
+                    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <div>
+                            <strong style="color:#92400e;font-size:0.85rem;">Mode Edit Tugas</strong><br>
+                            <span style="color:#b45309;font-size:0.8rem;">File baru yang Anda upload akan <strong>mengganti</strong> file sebelumnya. Waktu edit akan dicatat.</span>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     <h3>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        <?php echo (($assignment['assignment_type'] ?? 'tugas') === 'absensi') ? 'Form Kehadiran' : 'Form Pengumpulan Tugas'; ?>
+                        <?php echo $edit_mode ? 'Edit / Kirim Ulang Tugas' : ((($assignment['assignment_type'] ?? 'tugas') === 'absensi') ? 'Form Kehadiran' : 'Form Pengumpulan Tugas'); ?>
                     </h3>
                     <form method="POST" enctype="multipart/form-data">
+                        <?php if ($edit_mode): ?>
+                        <input type="hidden" name="resubmit" value="1">
+                        <?php endif; ?>
                         <?php if (($assignment['assignment_type'] ?? 'tugas') === 'absensi'): ?>
                             <div class="form-group">
                                 <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 10px;">Pilih Status Kehadiran Anda:</label>

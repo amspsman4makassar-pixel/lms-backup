@@ -124,7 +124,7 @@ if ($tab === 'tugas') {
         // Completed
         $sql2 = "
             SELECT a.title, a.deadline, a.assignment_type,
-                   s.submitted_at, s.grade, s.status as sub_status,
+                   s.submitted_at, s.updated_at, s.grade, s.status as sub_status,
                    a.id as assignment_id, s.id as submission_id,
                    u.full_name as teacher_name
             FROM submissions s
@@ -573,8 +573,10 @@ function getTypeIcon(string $type): array {
                     <?php else: ?>
                     <?php foreach ($completed_tasks as $d):
                         $is_late = ($d['sub_status'] === 'terlambat') || (!empty($d['submitted_at']) && strtotime($d['submitted_at']) > strtotime($d['deadline']));
+                        $was_edited = !empty($d['updated_at']);
+                        $can_edit   = $d['grade'] === null && ($d['assignment_type'] ?? 'tugas') !== 'absensi';
                     ?>
-                    <div class="task-card">
+                    <div class="task-card" style="flex-wrap:wrap;">
                         <div class="task-dot" style="background:#10b981;"></div>
                         <div class="task-info">
                             <div class="task-title"><?php echo htmlspecialchars($d['title']); ?></div>
@@ -583,16 +585,33 @@ function getTypeIcon(string $type): array {
                                 <?php if ($is_late): ?> &middot; <span style="color:#be185d; font-weight:600;">Terlambat</span><?php endif; ?>
                                 &middot; <?php echo htmlspecialchars($d['teacher_name']); ?>
                             </div>
+                            <?php if ($was_edited): ?>
+                            <div style="margin-top:4px;font-size:0.75rem;color:#f59e0b;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                Diedit: <?php echo date('d M Y, H:i', strtotime($d['updated_at'])); ?>
+                            </div>
+                            <?php endif; ?>
                         </div>
-                        <?php if (($d['assignment_type'] ?? 'tugas') === 'absensi'): ?>
-                            <span class="task-badge badge-done" style="border:1px solid #bbf7d0;"><?php echo htmlspecialchars($d['sub_status'] ?? 'Hadir'); ?></span>
-                        <?php elseif ($d['grade'] !== null): ?>
-                            <span class="task-badge badge-graded">Nilai: <?php echo $d['grade']; ?></span>
-                        <?php elseif ($is_late): ?>
-                            <span class="task-badge badge-late">Terlambat</span>
-                        <?php else: ?>
-                            <span class="task-badge badge-done">Selesai</span>
-                        <?php endif; ?>
+                        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                            <?php if (($d['assignment_type'] ?? 'tugas') === 'absensi'): ?>
+                                <span class="task-badge badge-done" style="border:1px solid #bbf7d0;"><?php echo htmlspecialchars($d['sub_status'] ?? 'Hadir'); ?></span>
+                            <?php elseif ($d['grade'] !== null): ?>
+                                <span class="task-badge badge-graded">Nilai: <?php echo $d['grade']; ?></span>
+                            <?php elseif ($is_late): ?>
+                                <span class="task-badge badge-late">Terlambat</span>
+                            <?php else: ?>
+                                <span class="task-badge badge-done">Selesai</span>
+                            <?php endif; ?>
+                            <?php if ($can_edit): ?>
+                            <a href="assignments.php?assignment_id=<?php echo $d['assignment_id']; ?>&edit=1"
+                               title="Edit / Kirim Ulang"
+                               style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:7px;font-size:0.75rem;font-weight:700;text-decoration:none;transition:background .2s;"
+                               onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                Edit
+                            </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php endforeach; ?>
                     <?php endif; ?>
