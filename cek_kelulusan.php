@@ -55,22 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             position: relative;
         }
         
-        body::before {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            right: 5%;
-            width: 450px;
-            height: 600px;
-            background-image: url('/public/assets/images/kepsek.png');
-            background-repeat: no-repeat;
-            background-position: right bottom;
-            background-size: contain;
-            opacity: 1; /* Foto sepenuhnya jelas (tidak transparan) */
-            pointer-events: none;
-            z-index: 0;
-        }
-        
+
         *, *::before, *::after { box-sizing: inherit; }
         
         .header-top {
@@ -103,11 +88,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         .main-content {
             flex: 1;
             display: flex;
-            align-items: center;
+            flex-direction: row;
+            align-items: flex-end;
             justify-content: center;
-            padding: 3rem 1rem;
+            gap: 2rem;
+            padding: 3rem 2rem;
             position: relative;
             z-index: 1;
+        }
+        
+        .kepsek-photo {
+            width: 280px;
+            flex-shrink: 0;
+            display: block;
+        }
+        .kepsek-photo img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
         
         .announce-box {
@@ -290,23 +288,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         }
         
         @media (max-width: 768px) {
-            body::before {
-                width: 220px;
-                height: 320px;
-                right: 0;
-                bottom: 0;
+            .main-content {
+                flex-direction: column;
+                align-items: center;
+                padding: 1.5rem 1rem;
+                gap: 1.5rem;
+            }
+            .kepsek-photo {
+                width: 160px;
+                order: -1; /* Foto tampil di ATAS box */
             }
             .announce-box {
                 background: #fff;
+                max-width: 100%;
             }
             .header-top {
                 flex-direction: column;
                 gap: 0.8rem;
                 padding: 1rem;
-            }
-            .main-content {
-                padding: 1.5rem 1rem 340px 1rem;
-                align-items: flex-start;
             }
             .surat-result {
                 padding: 2rem 1.5rem;
@@ -315,9 +314,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         
         @media print {
             body { background: #fff; }
-            body::before { opacity: 0.1; } /* Muncul tipis saat print */
-            .header-top, footer, .print-btn { display: none; }
-            .main-content { padding: 0; align-items: flex-start; }
+            .header-top, footer, .print-btn, .kepsek-photo { display: none; }
+            .main-content { padding: 0; align-items: flex-start; flex-direction: column; gap: 0; }
             .announce-box { border: none; box-shadow: none; max-width: 100%; margin: 0; }
             .surat-result { padding: 0; text-align: left; }
             .student-details { border: none; background: transparent; padding: 1rem 0; }
@@ -337,6 +335,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
 </header>
 
 <div class="main-content">
+    <div class="kepsek-photo">
+        <img src="/public/assets/images/kepsek.png" alt="Kepala Sekolah SMAN 4 Makassar">
+    </div>
     <div class="announce-box">
         <?php if ($result): ?>
             <?php $is_lulus = $result['status_kelulusan'] === 'lulus'; ?>
