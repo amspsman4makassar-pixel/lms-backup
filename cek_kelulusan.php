@@ -291,10 +291,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         
         @media (max-width: 768px) {
             body::before {
-                width: 200px;
-                height: 300px;
-                right: -10px;
+                width: 250px;
+                height: 350px;
+                right: -15px;
                 bottom: 0;
+            }
+            .announce-box {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(4px);
             }
             .header-top {
                 flex-direction: column;
