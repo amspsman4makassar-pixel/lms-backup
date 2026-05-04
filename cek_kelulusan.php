@@ -89,23 +89,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             flex: 1;
             display: flex;
             flex-direction: row;
-            align-items: flex-end;
+            align-items: center;
             justify-content: center;
-            gap: 2rem;
+            gap: 3rem;
             padding: 3rem 2rem;
             position: relative;
             z-index: 1;
         }
         
         .kepsek-photo {
-            width: 280px;
+            width: 260px;
             flex-shrink: 0;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
         }
         .kepsek-photo img {
             width: 100%;
             height: auto;
             display: block;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .kepsek-photo-caption {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
         }
         
         .announce-box {
@@ -287,19 +298,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             z-index: 1;
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
+            .kepsek-photo {
+                display: none; /* Sembunyikan foto di mobile/tablet */
+            }
             .main-content {
                 flex-direction: column;
                 align-items: center;
                 padding: 1.5rem 1rem;
-                gap: 1.5rem;
-            }
-            .kepsek-photo {
-                width: 160px;
-                order: -1; /* Foto tampil di ATAS box */
+                gap: 0;
             }
             .announce-box {
-                background: #fff;
                 max-width: 100%;
             }
             .header-top {
@@ -337,6 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
 <div class="main-content">
     <div class="kepsek-photo">
         <img src="/public/assets/images/kepsek.png" alt="Kepala Sekolah SMAN 4 Makassar">
+        <div class="kepsek-photo-caption">Kepala SMA Negeri 4 Makassar</div>
     </div>
     <div class="announce-box">
         <?php if ($result): ?>
