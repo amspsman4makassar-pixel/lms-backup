@@ -298,9 +298,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             z-index: 1;
         }
         
+        /* Principal Banner (Mobile Only) */
+        .principal-banner {
+            display: none;
+        }
+        
         @media (max-width: 900px) {
+            .principal-banner {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                background: #1e293b;
+                color: #fff;
+                padding: 0.85rem 1.25rem;
+                position: relative;
+                z-index: 1;
+            }
+            .principal-banner img {
+                width: 56px;
+                height: 68px;
+                object-fit: cover;
+                object-position: top;
+                border-radius: 4px;
+                border: 2px solid rgba(255,255,255,0.3);
+                flex-shrink: 0;
+            }
+            .principal-banner-text {
+                font-size: 0.82rem;
+                line-height: 1.4;
+            }
+            .principal-banner-text strong {
+                display: block;
+                font-size: 0.9rem;
+                margin-bottom: 0.15rem;
+            }
+            .principal-banner-text span {
+                color: #94a3b8;
+                font-size: 0.78rem;
+            }
             .kepsek-photo {
-                display: none; /* Sembunyikan foto di mobile/tablet */
+                display: none;
             }
             .main-content {
                 flex-direction: column;
@@ -342,6 +379,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
     </a>
     <a href="index.php" class="back-link">Kembali ke Beranda</a>
 </header>
+
+<!-- Banner Kepala Sekolah (Tampil hanya di mobile) -->
+<div class="principal-banner">
+    <img src="/public/assets/images/kepsek.png" alt="Kepala Sekolah">
+    <div class="principal-banner-text">
+        <strong>Kepala SMA Negeri 4 Makassar</strong>
+        <span>Portal Resmi Pengumuman Kelulusan Siswa</span>
+    </div>
+</div>
 
 <div class="main-content">
     <div class="kepsek-photo">
