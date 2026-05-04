@@ -289,6 +289,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             z-index: 1;
         }
         
+        @media (max-width: 768px) {
+            body::before {
+                width: 200px;
+                height: 300px;
+                right: -10px;
+                bottom: 0;
+            }
+            .header-top {
+                flex-direction: column;
+                gap: 0.8rem;
+                padding: 1rem;
+            }
+            .main-content {
+                padding: 1.5rem 1rem;
+            }
+            .surat-result {
+                padding: 2rem 1.5rem;
+            }
+        }
+        
         @media print {
             body { background: #fff; }
             body::before { opacity: 0.1; } /* Muncul tipis saat print */
