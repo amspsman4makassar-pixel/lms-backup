@@ -52,7 +52,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            position: relative;
         }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            bottom: -20px;
+            right: 2%;
+            width: 450px;
+            height: 600px;
+            background-image: url('/public/assets/images/kepsek.png');
+            background-repeat: no-repeat;
+            background-position: right bottom;
+            background-size: contain;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
         *, *::before, *::after { box-sizing: inherit; }
         
         .header-top {
@@ -62,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
         .header-top .logo {
             font-weight: 700;
@@ -86,6 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             align-items: center;
             justify-content: center;
             padding: 3rem 1rem;
+            position: relative;
+            z-index: 1;
         }
         
         .announce-box {
@@ -97,21 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             overflow: hidden;
             border: 1px solid #e2e8f0;
             position: relative;
-        }
-        .announce-box::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 250px;
-            height: 350px;
-            background-image: url('/public/assets/images/kepsek.png');
-            background-repeat: no-repeat;
-            background-position: right bottom;
-            background-size: contain;
-            opacity: 0.12; /* Transparansi untuk efek watermark */
-            pointer-events: none;
-            z-index: 0;
         }
         
         .announce-header {
@@ -278,14 +285,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             padding: 1.5rem;
             color: #64748b;
             font-size: 0.8rem;
+            position: relative;
+            z-index: 1;
         }
         
         @media print {
             body { background: #fff; }
+            body::before { opacity: 0.1; } /* Muncul tipis saat print */
             .header-top, footer, .print-btn { display: none; }
             .main-content { padding: 0; align-items: flex-start; }
             .announce-box { border: none; box-shadow: none; max-width: 100%; margin: 0; }
-            .announce-box::after { opacity: 0.1; } /* Tetap tampil tipis saat di-print */
             .surat-result { padding: 0; text-align: left; }
             .student-details { border: none; background: transparent; padding: 1rem 0; }
             .status-box { display: block; text-align: center; margin: 2rem auto; max-width: 300px; }
