@@ -57,9 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         
         body::before {
             content: "";
-            position: fixed;
-            bottom: -20px;
-            right: 2%;
+            position: absolute;
+            bottom: 0;
+            right: 5%;
             width: 450px;
             height: 600px;
             background-image: url('/public/assets/images/kepsek.png');
@@ -291,14 +291,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         
         @media (max-width: 768px) {
             body::before {
-                width: 250px;
-                height: 350px;
-                right: -15px;
+                width: 220px;
+                height: 320px;
+                right: 0;
                 bottom: 0;
             }
             .announce-box {
-                background: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(4px);
+                background: #fff;
             }
             .header-top {
                 flex-direction: column;
@@ -306,7 +305,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                 padding: 1rem;
             }
             .main-content {
-                padding: 1.5rem 1rem;
+                padding: 1.5rem 1rem 340px 1rem;
+                align-items: flex-start;
             }
             .surat-result {
                 padding: 2rem 1.5rem;
