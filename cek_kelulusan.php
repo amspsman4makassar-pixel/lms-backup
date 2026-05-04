@@ -135,14 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             border-radius: 6px;
             overflow: hidden;
             background: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .input-prefix {
-            padding: 0.75rem 1rem;
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-right: 1px solid #cbd5e1;
+        .input-group:focus-within {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         .input-control {
             flex: 1;
@@ -348,12 +345,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                     <div class="form-group">
                         <label class="form-label" for="kode_siswa">Nomor Registrasi Kelulusan</label>
                         <div class="input-group">
-                            <span class="input-prefix">Smapat</span>
                             <input type="text" id="kode_siswa" name="kode_siswa" class="input-control" 
-                                   placeholder="Masukkan NISN..." 
-                                   value="<?= htmlspecialchars(preg_replace('/^smapat/i', '', $input_raw)) ?>"
+                                   placeholder="Contoh: Smapat0071234567" 
+                                   value="<?= htmlspecialchars($input_raw) ?>"
                                    required autofocus autocomplete="off">
                         </div>
+                        <p style="margin-top: 0.6rem; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
+                            <span style="color:#2563eb; font-weight:600;">ℹ️ Format:</span> Gabungan kata <strong>Smapat</strong> dan <strong>NISN</strong>.<br>
+                            Contoh: Jika NISN Anda 0071234567, ketik <strong>Smapat0071234567</strong>
+                        </p>
                         <?php if ($error_msg): ?>
                             <span class="error-msg"><?= $error_msg ?></span>
                         <?php endif; ?>
