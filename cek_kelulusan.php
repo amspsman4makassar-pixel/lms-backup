@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             background-repeat: no-repeat;
             background-position: right bottom;
             background-size: contain;
-            opacity: 0.25;
+            opacity: 1; /* Foto sepenuhnya jelas (tidak transparan) */
             pointer-events: none;
             z-index: 0;
         }
