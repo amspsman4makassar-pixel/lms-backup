@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         }
         
         .kepsek-photo {
-            width: 260px;
+            width: 360px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -315,8 +315,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                 z-index: 1;
             }
             .principal-banner img {
-                width: 56px;
-                height: 68px;
+                width: 80px;
+                height: 100px;
                 object-fit: cover;
                 object-position: top;
                 border-radius: 4px;
