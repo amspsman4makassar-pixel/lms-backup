@@ -3,8 +3,8 @@
 # deploy.sh — Script Deploy Selektif LMS SIAKAD
 # Jalankan dari: /var/www/lms/
 # Fungsi:
-#   - Update folder src/ dari GitHub
-#   - Update folder public/assets/ dari GitHub
+#   - Update file utama di root (*.php)
+#   - Update folder src/, database/, dan public/assets/
 #   - TIDAK menyentuh public/uploads/ dan config/database.php
 # ============================================================
 
@@ -13,69 +13,46 @@ set -e  # Berhenti jika ada error
 GIT_DIR="/var/www/lms"
 
 echo "========================================"
-echo "  SIAKAD Deploy Script"
+echo "  SIAKAD Deploy Script (Versi Baru)"
 echo "========================================"
 
 # Pastikan kita di direktori yang benar
-cd "$GIT_DIR"
+if [ -d "$GIT_DIR" ]; then
+    cd "$GIT_DIR"
+else
+    echo "Warning: Direktori $GIT_DIR tidak ditemukan. Menggunakan direktori saat ini."
+fi
 
 echo ""
-echo "[1/3] Mengambil perubahan dari GitHub..."
+echo "[1/4] Mengambil perubahan terbaru dari GitHub..."
 git fetch origin main
 
 echo ""
-echo "[2/3] Memperbarui folder src/..."
-git checkout origin/main -- src/
-echo "      ✓ src/ berhasil diperbarui"
+echo "[2/4] Memperbarui file utama di root folder..."
+# Mengambil semua file PHP di root folder (termasuk index.php, cek_kelulusan.php, dll)
+git checkout origin/main -- \*.php
+echo "      ✓ File root (*.php) berhasil diperbarui"
 
 echo ""
-echo "[3/3] Memperbarui public/assets/ (uploads/ tidak disentuh)..."
+echo "[3/4] Memperbarui folder aplikasi (src/ & database/)..."
+git checkout origin/main -- src/ database/
+echo "      ✓ src/ dan database/ berhasil diperbarui"
+
+echo ""
+echo "[4/4] Memperbarui folder assets publik..."
 git checkout origin/main -- public/assets/
 echo "      ✓ public/assets/ berhasil diperbarui"
 
 echo ""
 echo "========================================"
-echo "  Deploy selesai!"
-echo "  - src/            → $GIT_DIR/src/"
-echo "  - public/assets/  → $GIT_DIR/public/assets/"
-echo "  - public/uploads/ TIDAK disentuh ✓"
-echo "  - config/         TIDAK disentuh ✓"
-echo "========================================"
-
-
-echo "========================================"
-echo "  SIAKAD Deploy Script"
-echo "========================================"
-
-# Pastikan kita di direktori yang benar
-cd "$GIT_DIR"
-
+echo "  Deploy berhasil diselesaikan! ✅"
+echo "  Telah Diperbarui:"
+echo "  - File root (*.php)"
+echo "  - Folder src/"
+echo "  - Folder database/"
+echo "  - Folder public/assets/"
 echo ""
-echo "[1/3] Mengambil perubahan dari GitHub..."
-git fetch origin main
-
-echo ""
-echo "[2/3] Memperbarui folder src/..."
-git checkout origin/main -- src/
-echo "      ✓ src/ berhasil diperbarui"
-
-echo ""
-echo "[3/3] Menyinkronkan public/assets/ ke $PUBLIC_TARGET/assets/..."
-# Buat direktori target jika belum ada
-mkdir -p "$PUBLIC_TARGET/assets"
-# Gunakan rsync jika tersedia, fallback ke cp
-if command -v rsync &> /dev/null; then
-    rsync -av --delete "$GIT_DIR/public/assets/" "$PUBLIC_TARGET/assets/"
-else
-    cp -r "$GIT_DIR/public/assets/." "$PUBLIC_TARGET/assets/"
-fi
-echo "      ✓ public/assets/ berhasil disinkronkan"
-
-echo ""
-echo "========================================"
-echo "  Deploy selesai!"
-echo "  - src/         → $GIT_DIR/src/"
-echo "  - public/assets/ → $PUBLIC_TARGET/assets/"
-echo "  - public/uploads/ TIDAK disentuh"
-echo "  - config/database.php TIDAK disentuh"
+echo "  TIDAK disentuh (Aman):"
+echo "  - public/uploads/ (Data file yang diupload siswa/guru)"
+echo "  - config/database.php (Kredensial database lokal)"
 echo "========================================"
