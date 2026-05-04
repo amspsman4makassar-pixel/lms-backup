@@ -346,13 +346,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                         <label class="form-label" for="kode_siswa">Nomor Registrasi Kelulusan</label>
                         <div class="input-group">
                             <input type="text" id="kode_siswa" name="kode_siswa" class="input-control" 
-                                   placeholder="Contoh: Smapat0071234567" 
+                                   placeholder="Contoh: Smapat00--++----" 
                                    value="<?= htmlspecialchars($input_raw) ?>"
                                    required autofocus autocomplete="off">
                         </div>
                         <p style="margin-top: 0.6rem; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
                             <span style="color:#2563eb; font-weight:600;">ℹ️ Format:</span> Gabungan kata <strong>Smapat</strong> dan <strong>NISN</strong>.<br>
-                            Contoh: Jika NISN Anda 0071234567, ketik <strong>Smapat0071234567</strong>
+                            Contoh: Jika NISN Anda 00--++----, ketik <strong>Smapat00--++----</strong>
                         </p>
                         <?php if ($error_msg): ?>
                             <span class="error-msg"><?= $error_msg ?></span>
