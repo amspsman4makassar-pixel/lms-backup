@@ -324,7 +324,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                 </div>
                 <?php endif; ?>
                 
-                <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                <div style="margin-top: 3.5rem; text-align: right; font-size: 0.9rem; color: #334155; padding-right: 1rem;">
+                    <p style="margin: 0 0 0.5rem 0;">Makassar, <?= date('j F Y') ?></p>
+                    <p style="margin: 0 0 0.5rem 0;">Kepala SMA Negeri 4 Makassar</p>
+                    
+                    <div style="display: inline-block; text-align: center;">
+                        <img src="/public/assets/images/kepsek.png" alt="Foto Kepala Sekolah" style="height: 120px; width: auto; object-fit: contain; margin-bottom: 0.5rem; border-radius: 4px;">
+                        <p style="margin: 0; font-weight: 700; text-decoration: underline;">Kepala Sekolah</p>
+                        <p style="margin: 0.2rem 0 0 0;">NIP. -</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
                     <button onclick="window.print()" class="print-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         Cetak / Simpan PDF
