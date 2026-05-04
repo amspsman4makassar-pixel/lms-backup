@@ -351,7 +351,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                                    required autofocus autocomplete="off">
                         </div>
                         <p style="margin-top: 0.6rem; font-size: 0.85rem; color: #64748b; line-height: 1.4;">
-                            <span style="color:#2563eb; font-weight:600;">ℹ️ Format:</span> Gabungan kata <strong>Smapat</strong> dan <strong>NISN</strong>.<br>
+                            <span style="color:#2563eb; font-weight:600; display:inline-flex; align-items:center; gap:0.25rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                Format:
+                            </span> Gabungan kata <strong>Smapat</strong> dan <strong>NISN</strong>.<br>
                             Contoh: Jika NISN Anda 00--++----, ketik <strong>Smapat00--++----</strong>
                         </p>
                         <?php if ($error_msg): ?>

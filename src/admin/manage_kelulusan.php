@@ -232,16 +232,16 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
         <!-- Segmented Control -->
         <div style="display:flex; gap:.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
             <button class="seg-btn <?= !$edit_data ? 'active' : '' ?>" onclick="switchTab('tab-form', this)">
-                ✏️ <?= $edit_data ? 'Edit Data' : 'Tambah Manual' ?>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> <?= $edit_data ? 'Edit Data' : 'Tambah Manual' ?>
             </button>
-            <button class="seg-btn" onclick="switchTab('tab-import', this)">📂 Import Excel / CSV</button>
-            <button class="seg-btn active" onclick="switchTab('tab-list', this)" id="btn-list">📋 Daftar Data (<?= $total_rows ?>)</button>
+            <button class="seg-btn" onclick="switchTab('tab-import', this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> Import Excel / CSV</button>
+            <button class="seg-btn active" onclick="switchTab('tab-list', this)" id="btn-list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> Daftar Data (<?= $total_rows ?>)</button>
         </div>
 
         <!-- FORM TAMBAH / EDIT -->
         <div id="tab-form" class="tab-pane page-section <?= $edit_data ? 'active' : '' ?>">
             <div class="panel-header">
-                <h3 class="panel-title"><?= $edit_data ? '✏️ Edit Data Kelulusan' : '➕ Tambah Data Kelulusan' ?></h3>
+                <h3 class="panel-title"><?= $edit_data ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Edit Data Kelulusan' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Tambah Data Kelulusan' ?></h3>
             </div>
             <form method="POST" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
                 <input type="hidden" name="action" value="save">
@@ -270,8 +270,8 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
                 <div class="form-group">
                     <label>Status Kelulusan</label>
                     <select name="status" class="form-control">
-                        <option value="lulus" <?= ($edit_data['status_kelulusan'] ?? 'lulus') === 'lulus' ? 'selected' : '' ?>>✅ Lulus</option>
-                        <option value="tidak_lulus" <?= ($edit_data['status_kelulusan'] ?? '') === 'tidak_lulus' ? 'selected' : '' ?>>❌ Tidak Lulus</option>
+                        <option value="lulus" <?= ($edit_data['status_kelulusan'] ?? 'lulus') === 'lulus' ? 'selected' : '' ?>>Lulus</option>
+                        <option value="tidak_lulus" <?= ($edit_data['status_kelulusan'] ?? '') === 'tidak_lulus' ? 'selected' : '' ?>>Tidak Lulus</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -292,7 +292,7 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
         <!-- IMPORT -->
         <div id="tab-import" class="tab-pane page-section">
             <div class="panel-header">
-                <h3 class="panel-title">📂 Import dari Excel / CSV</h3>
+                <h3 class="panel-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-4px;margin-right:6px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> Import dari Excel / CSV</h3>
             </div>
             <div class="import-zone" id="importDropZone">
                 <form method="POST" enctype="multipart/form-data" id="importForm">
@@ -346,7 +346,7 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
         <!-- DAFTAR -->
         <div id="tab-list" class="tab-pane page-section active">
             <div class="panel-header">
-                <h3 class="panel-title">📋 Daftar Data Kelulusan</h3>
+                <h3 class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> Daftar Data Kelulusan</h3>
             </div>
 
             <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1rem; align-items:center;">
@@ -359,7 +359,7 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
                         <option value="<?= htmlspecialchars($t) ?>" <?= $tahun_filter === $t ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button type="submit" class="btn">🔍 Cari</button>
+                    <button type="submit" class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:2px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Cari</button>
                     <?php if ($search || $tahun_filter): ?>
                     <a href="manage_kelulusan.php" class="btn" style="background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border);">Reset</a>
                     <?php endif; ?>
@@ -375,13 +375,13 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
                         <option value="<?= htmlspecialchars($t) ?>"><?= htmlspecialchars($t) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button type="submit" class="btn btn-danger btn-xs" style="padding:.3rem .6rem; height:auto;">🗑 Eksekusi</button>
+                    <button type="submit" class="btn btn-danger btn-xs" style="padding:.3rem .6rem; height:auto;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:2px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Eksekusi</button>
                 </form>
             </div>
 
             <?php if (empty($list)): ?>
             <div class="empty-state">
-                <div class="empty-icon">🎓</div>
+                <div class="empty-icon" style="margin-bottom:1rem;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></div>
                 <h4>Belum ada data kelulusan</h4>
                 <p>Tambahkan data secara manual atau import dari Excel/CSV.</p>
             </div>
@@ -407,18 +407,18 @@ $tahun_list = $pdo->query("SELECT DISTINCT tahun_kelulusan FROM kelulusan_siswa 
                     <td><?= htmlspecialchars($row['tahun_kelulusan'] ?? '-') ?></td>
                     <td>
                         <?php if ($row['status_kelulusan'] === 'lulus'): ?>
-                        <span class="status-badge badge-lulus">✅ Lulus</span>
+                        <span class="status-badge badge-lulus"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Lulus</span>
                         <?php else: ?>
-                        <span class="status-badge badge-tidak">❌ Tidak Lulus</span>
+                        <span class="status-badge badge-tidak"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Tidak Lulus</span>
                         <?php endif; ?>
                     </td>
                     <td>
                         <div style="display:flex; gap:.4rem;">
-                            <a href="manage_kelulusan.php?edit=<?= $row['id'] ?>" class="btn btn-xs" title="Edit">✏️</a>
+                            <a href="manage_kelulusan.php?edit=<?= $row['id'] ?>" class="btn btn-xs" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></a>
                             <form method="POST" onsubmit="return confirm('Hapus data <?= htmlspecialchars(addslashes($row['nama_siswa'])) ?>?')" style="display:inline">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                <button type="submit" class="btn btn-danger btn-xs" title="Hapus">🗑</button>
+                                <button type="submit" class="btn btn-danger btn-xs" title="Hapus"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                             </form>
                         </div>
                     </td>
