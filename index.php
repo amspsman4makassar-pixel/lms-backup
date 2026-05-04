@@ -172,6 +172,15 @@ catch (PDOException $e) {
                 <p>Pendataan lulusan untuk pemetaan karir: Kuliah, Kerja, atau Wirausaha.</p>
                 <span class="layanan-link">Isi Data Lulusan &rarr;</span>
             </a>
+
+            <a href="cek_kelulusan.php" class="layanan-card">
+                <div class="layanan-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h3>Cek Kelulusan Siswa</h3>
+                <p>Masukkan kode <strong>Smapat</strong>+NISN untuk mengetahui status kelulusan Anda secara resmi.</p>
+                <span class="layanan-link">Cek Sekarang &rarr;</span>
+            </a>
         </div>
     </section>
 
