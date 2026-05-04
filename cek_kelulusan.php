@@ -96,6 +96,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             max-width: 520px;
             overflow: hidden;
             border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .announce-box::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 250px;
+            height: 350px;
+            background-image: url('/public/assets/images/kepsek.png');
+            background-repeat: no-repeat;
+            background-position: right bottom;
+            background-size: contain;
+            opacity: 0.12; /* Transparansi untuk efek watermark */
+            pointer-events: none;
+            z-index: 0;
         }
         
         .announce-header {
@@ -103,6 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             padding: 2.5rem 2rem;
             text-align: center;
             color: #fff;
+            position: relative;
+            z-index: 1;
         }
         .announce-header h1 {
             font-size: 1.35rem;
@@ -118,6 +136,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         
         .announce-body {
             padding: 2.5rem 2rem;
+            position: relative;
+            z-index: 1;
         }
         
         .form-group { margin-bottom: 1.5rem; }
@@ -172,6 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
         .surat-result {
             padding: 3rem 2.5rem;
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
         .status-box {
             display: inline-block;
@@ -263,6 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
             .header-top, footer, .print-btn { display: none; }
             .main-content { padding: 0; align-items: flex-start; }
             .announce-box { border: none; box-shadow: none; max-width: 100%; margin: 0; }
+            .announce-box::after { opacity: 0.1; } /* Tetap tampil tipis saat di-print */
             .surat-result { padding: 0; text-align: left; }
             .student-details { border: none; background: transparent; padding: 1rem 0; }
             .status-box { display: block; text-align: center; margin: 2rem auto; max-width: 300px; }
@@ -323,17 +346,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['nisn'])) {
                     <strong>Catatan Pihak Sekolah:</strong> <?= htmlspecialchars($result['catatan']) ?>
                 </div>
                 <?php endif; ?>
-                
-                <div style="margin-top: 3.5rem; text-align: right; font-size: 0.9rem; color: #334155; padding-right: 1rem;">
-                    <p style="margin: 0 0 0.5rem 0;">Makassar, <?= date('j F Y') ?></p>
-                    <p style="margin: 0 0 0.5rem 0;">Kepala SMA Negeri 4 Makassar</p>
-                    
-                    <div style="display: inline-block; text-align: center;">
-                        <img src="/public/assets/images/kepsek.png" alt="Foto Kepala Sekolah" style="height: 120px; width: auto; object-fit: contain; margin-bottom: 0.5rem; border-radius: 4px;">
-                        <p style="margin: 0; font-weight: 700; text-decoration: underline;">Kepala Sekolah</p>
-                        <p style="margin: 0.2rem 0 0 0;">NIP. -</p>
-                    </div>
-                </div>
                 
                 <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
                     <button onclick="window.print()" class="print-btn">
