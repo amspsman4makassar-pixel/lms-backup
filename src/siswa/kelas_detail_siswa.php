@@ -124,7 +124,7 @@ if ($tab === 'tugas') {
         // Completed
         $sql2 = "
             SELECT a.title, a.deadline, a.assignment_type,
-                   s.submitted_at, s.updated_at, s.grade, s.status as sub_status,
+                   s.submitted_at, s.updated_at, s.grade, s.feedback, s.status as sub_status,
                    a.id as assignment_id, s.id as submission_id,
                    u.full_name as teacher_name
             FROM submissions s
@@ -589,6 +589,15 @@ function getTypeIcon(string $type): array {
                             <div style="margin-top:4px;font-size:0.75rem;color:#f59e0b;font-weight:600;display:flex;align-items:center;gap:4px;">
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 Diedit: <?php echo date('d M Y, H:i', strtotime($d['updated_at'])); ?>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($d['feedback'])): ?>
+                            <div style="margin-top:8px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:0 8px 8px 0;padding:8px 12px;display:flex;align-items:flex-start;gap:8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <div>
+                                    <span style="font-size:0.7rem;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.05em;">Komentar Guru</span>
+                                    <p style="margin:2px 0 0;font-size:0.82rem;color:#1e40af;font-weight:500;"><?php echo htmlspecialchars($d['feedback']); ?></p>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>

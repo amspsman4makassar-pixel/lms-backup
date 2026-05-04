@@ -1,10 +1,10 @@
 <?php
 // config/database.php
 
-$host = '192.168.10.101';
+ $host = 'localhost';
 $db_name = 'sman4_lms';
-$username = 'lmsuser';
-$password = 'passwordkamu'; // Default Laragon password is empty
+$username = 'root';
+$password = ''; // Default Laragon password is empty
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
