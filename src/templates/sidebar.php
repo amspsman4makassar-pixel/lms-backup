@@ -54,9 +54,14 @@ function nav_active(string|array $pages): string {
 
     <!-- Header -->
     <div class="sidebar-header">
-        <div>
-            <div class="sidebar-brand-name">SMA Negeri 4</div>
-            <div class="sidebar-brand-sub">Makassar</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="/public/assets/images/Logo_SMAPAT.png"
+                 alt="Logo SMAN 4 Makassar"
+                 style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">
+            <div>
+                <div class="sidebar-brand-name">SMA Negeri 4</div>
+                <div class="sidebar-brand-sub">Makassar</div>
+            </div>
         </div>
         <button id="sidebarClose" class="mobile-close-btn" aria-label="Tutup Menu">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
